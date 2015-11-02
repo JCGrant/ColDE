@@ -1,0 +1,14 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static 'ide/lib/codemirror.css' %}"/>
+        <link rel="stylesheet" href="{% static 'ide/style.css' %}"/>
+        <script src="{% static 'ide/lib/codemirror.js' %}"></script>
+        <script src="{% static 'ide/lib/python.js' %}"></script>
+    </head>
+    <body>
+        <textarea id="code"></textarea>
+        <script src="{% static 'ide/ide.js' %}"></script>
+    </body>
+</html>
