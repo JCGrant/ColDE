@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+  <head>
+    <title>ColDE</title>
+    <link rel="stylesheet" href="static/css/lib/codemirror.css">
+    <link rel="stylesheet" href="static/css/lib/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/lib/monokai.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script src="static/js/lib/codemirror.js"></script>
+    <script src="static/js/lib/javascript.js"></script>
+    <script src="static/js/lib/python.js"></script>
+    <script src="static/js/lib/javascript-hint.js"></script>
+    <script src="static/js/lib/show-hint.js"></script>
+  </head>
+  <body>  
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">ColDE</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#">File</a></li>
+            <li><a href="#">Edit</a></li>
+            <li><a href="#">View</a></li>
+            <li><a href="#">Tools</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Login</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li>index.html</li>
+            <li>index.js</li>
+            <li>style.css</li>
+            <li>app.py</li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <textarea id="editorArea"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <script src="static/js/lib/jquery.min.js"></script>
+    <script src="static/js/lib/bootstrap.min.js"></script>
+    <script src="static/js/lib/socket.io.js"></script>
+    <script src="static/js/socketio_client.js"></script>
+    <script src="static/js/codemirror.js"></script>
+  </body>
+</html>
