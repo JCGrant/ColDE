@@ -10,7 +10,6 @@ users = {}
 @socketio.on('connect')
 def connect():
     users[request.sid] = User()
-    print('User connected!' + str(users))
 
 @socketio.on('disconnect')
 def disconnect():
@@ -18,6 +17,5 @@ def disconnect():
 
 @socketio.on('incoming changset')
 def handle(changeset):
-    print('received ' + str(changeset))
     changeset['clientId'] = request.sid
     emit('incoming changeset', changeset, broadcast=True)

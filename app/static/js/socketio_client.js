@@ -17,7 +17,6 @@ socket.on('incoming changeset', function(changeset) {
     if (changeset['clientId'] === userId) {
         return;
     }
-    console.log('PROCESSING' + changeset);
     // Process update.
     processExternalChangeset(changeset);
 });
