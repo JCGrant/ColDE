@@ -11,3 +11,17 @@ editor.setOption('extraKeys', {
     cm.replaceSelection(spaces);
   }
 });
+
+editor.on('change', function(instance, changeset) {
+    // Do not propagate the update if it was already from a different client.
+    if (changeset.hasOwnProperty('origin') 
+        && changeset['origin'] === 'external') {
+        return;
+    }
+    onNewChangeset(changeset);
+});
+
+processExternalChangeset = function(changeset) {
+    editor.replaceRange(changeset['text'], changeset['from'], 
+        changeset['to'], 'external');
+};
