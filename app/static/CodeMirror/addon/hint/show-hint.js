@@ -438,4 +438,3 @@
 
   CodeMirror.defineOption("hintOptions", null);
 });
-
