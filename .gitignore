@@ -3,4 +3,5 @@ venv
 *.pyc
 *.swp
 *.sqlite3
+*.db
 *.idea
