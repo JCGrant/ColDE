@@ -28,6 +28,10 @@ processExternalChangeset = function(changeset) {
       changeset['to'], 'external');
 }
 
+setPadContent = function(content) {
+  editor.setValue(content);
+}
+
 function getCompletions(token, context) {
   var found = [], start = token.string;
   function maybeAdd(str) {

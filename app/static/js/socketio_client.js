@@ -11,6 +11,15 @@ socket.on('connect', function() {
 
 // Function to be called to process a changeset.
 var processExternalChangeset;
+// Function to be called to set the content of the pad.
+var setPadContent;
+
+socket.on('message', function(data) {
+	if (data['type'] === 'initial') {
+		// Set current content of the pad.
+		setPadContent(data['content']);
+	}
+});
 
 socket.on('incoming changeset', function(changeset) {
   // Skip the changeset if it was issued by us.
