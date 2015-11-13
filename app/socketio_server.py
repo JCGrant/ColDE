@@ -34,6 +34,7 @@ def handle(changeset):
     applyChangeset(initPad, changeset)
 
 def applyChangeset(pad, changeset):
-    currentLines = changeset.splitlines()
-    while len(currentLines) <= changeset['to'] - 2:
-        currentLines.append('\n')
+    # currentLines = changeset.splitlines()
+    # while len(currentLines) <= changeset['to'] - 2:
+    #     currentLines.append('\n')
+    pass
