@@ -25,6 +25,11 @@
     <script src="static/CodeMirror/addon/fold/brace-fold.js"></script>
     <script src="static/CodeMirror/mode/javascript/javascript.js"></script>
     <script src="static/CodeMirror/keymap/sublime.js"></script>
+    <!-- shim for ES6 `Promise` builtin -->
+    <script src="static/js/lib/pypyjs/lib/Promise.min.js" type="text/javascript"></script>
+    <!-- shim for off-main-thread function compilation -->
+    <script src="static/js/lib/pypyjs/lib/FunctionPromise.js" type="text/javascript"></script>
+    <script src="static/js/lib/pypyjs/lib/pypyjs.js" type="text/javascript"></script>
   </head>
   <body>  
 
@@ -46,6 +51,8 @@
             <li><a href="#">View</a></li>
             <li><a href="#">Tools</a></li>
             <li><a href="#">Help</a></li>
+	    <li><input id="clickJs" type="button" value="runJs"/></li>
+	    <li><input id="clickPy" type="button" value="runPy"/></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">Login</a></li>
@@ -78,5 +85,6 @@
     <script src="static/js/lib/socket.io.js"></script>
     <script src="static/js/socketio_client.js"></script>
     <script src="static/js/codemirror.js"></script>
+    <script src="static/js/run_code.js"></script>
   </body>
 </html>
