@@ -21,7 +21,7 @@ socket.on('message', function(data) {
 	}
 });
 
-socket.on('incoming changeset', function(changeset) {
+socket.on('server_client_changeset', function(changeset) {
   // Skip the changeset if it was issued by us.
   if (changeset['clientId'] === userId) {
     return;
@@ -31,5 +31,5 @@ socket.on('incoming changeset', function(changeset) {
 });
 
 var onNewChangeset = function(changeset) {
-  socket.emit('incoming changset', changeset);
+  socket.emit('client_server_changeset', changeset);
 };

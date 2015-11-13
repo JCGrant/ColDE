@@ -13,8 +13,10 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.pw_hash, password)
 
-
-class Editor(db.Model):
+class Pad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
     text = db.Column(db.Text)
+
+    def __init__(self):
+        self.text = '\n'
