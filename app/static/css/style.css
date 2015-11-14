@@ -110,3 +110,10 @@ body {
 .CodeMirror {
   height: 800px;
 }
+
+#webview {
+    float: right;
+    width: 33%;
+    max-width: 33%;
+    overflow: auto;
+}

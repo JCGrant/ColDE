@@ -62,7 +62,8 @@
             <li><a href="#">Help</a></li>
 	    <li><input id="clickJs" type="button" value="runJs"/></li>
 	    <li><input id="clickPy" type="button" value="runPy"/></li>
-	    <li><input id="clickSkulpt" type="button" value = "runSkulpt">Run</button> 
+	    <li><input id="clickSkulpt" type="button" value = "runSkulpt"/></li> 
+	    <li><input id="clickHTML" type="button" value="renderHtml"/></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">Login</a></li>
@@ -84,11 +85,12 @@
             <li>app.py</li>
           </ul>
         </div>
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div class="col-sm-9 col-sm-offset-3 col-md-6 col-md-offset-2 main">
           <textarea id="editorArea"></textarea>
           <pre id="output" ></pre> 
-          <div id="mycanvas"></div> 
+          <div id="mycanvas" ></div>
         </div>
+        <div id="webview"></div>
       </div>
     </div>
 

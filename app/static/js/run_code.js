@@ -1,7 +1,46 @@
 function runJScode() {
+    var mypre = document.getElementById("output"); 
+    mypre.innerHTML = "";
+    takeOverConsole(mypre);
     var js = editor.getValue();
-    var mypre = document.getElementById("output");
-    mypre.innerHTML = js;
+    var s = document.createElement('script');
+    s.textContent = js; 
+    document.body.appendChild(s);
+    restoreConsole();
+}
+
+function takeOverConsole(mypre){
+    var console = window.console;
+    if (!console) return;
+    function intercept(method){
+        var original = console[method];
+        console[method] = function(){
+            mypre.innerHTML = mypre.innerHTML + arguments[0] + "\n";
+            if (original.apply){
+                // Do this for normal browsers
+                original.apply(console, arguments);
+            }else{
+                // Do this for IE
+                var message = Array.prototype.slice.apply(arguments).join(' ');
+                original(message);
+            }
+        }
+    }
+    var methods = ['log', 'warn', 'error'];
+    for (var i = 0; i < methods.length; i++)
+        intercept(methods[i]);
+}
+
+function restoreConsole(){
+    delete console.log;
+}
+
+
+
+function runHTML() {
+    var web = editor.getValue();
+    var myPre = document.getElementById("webview");
+    myPre.innerHTML = web; 
 }
 
 function runPYcode() {
@@ -9,7 +48,7 @@ function runPYcode() {
     pypyjs.exec(py);
 }
 
-function outf(text) {
+function outf(text) { 
     var mypre = document.getElementById("output"); 
     mypre.innerHTML = mypre.innerHTML + text; 
 } 
@@ -40,6 +79,7 @@ function runit() {
 
 $("#clickSkulpt").click(runit);
 $("#clickJs").click(runJScode);
+$("#clickHTML").click(runHTML);
 $("#clickPy").click(runPYcode);
 
 
