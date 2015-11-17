@@ -44,8 +44,11 @@ function runHTML() {
 }
 
 function runPYcode() {
+    var mypre = document.getElementById("output"); 
+    takeOverConsole(mypre);
     var py = editor.getValue();
     pypyjs.exec(py);
+    restoreConsole();
 }
 
 function outf(text) { 
