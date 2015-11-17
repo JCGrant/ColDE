@@ -1,10 +1,10 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
+from app import config
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////test.db'
+app.config.from_object(config)
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
