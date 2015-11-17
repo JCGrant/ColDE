@@ -40,7 +40,7 @@ function restoreConsole(){
 function runHTML() {
     var web = editor.getValue();
     var myPre = document.getElementById("webview");
-    myPre.innerHTML = web; 
+    myPre.src = "data:text/html;charset=utf-8," + escape(web);
 }
 
 function runPYcode() {
