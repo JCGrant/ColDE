@@ -21,16 +21,11 @@ editor.setOption('extraKeys', {
   "Ctrl-Space": "autocomplete"
 });
 
-blockedTransmissions = ['external', 'setValue']
+blockedOrigins = ['external', 'setValue']
 editor.on('change', function(instance, changeset) {
-    // Do not propagate the update if it was already from a different client.
-    console.log(changeset.hasOwnProperty('origin'));
-    if (changeset.hasOwnProperty('origin')) {
-      console.log(changeset['origin']);
-      console.log(blockedTransmissions.indexOf(changeset['origin']));
-    }
+    // Do not propagate the update if it was from a different client.
     if (changeset.hasOwnProperty('origin')
-        && blockedTransmissions.indexOf(changeset['origin']) >= 0) {
+        && blockedOrigins.indexOf(changeset['origin']) >= 0) {
         return;
     }
     onNewChangeset(changeset);
