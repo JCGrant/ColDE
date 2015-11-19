@@ -60,3 +60,14 @@ var onAfterChange = function(changeset) {
   // TODO: maybe send to server.
   socket.emit('client_server_changeset', changeset);
 }
+
+var sender;
+console.log('nu se intra');
+if (typeof(sender) == 'undefined') {
+  console.log('se intra');
+  sender = new Worker('countdown.js');
+}
+
+tick = function() {
+  console.log('tick');
+}

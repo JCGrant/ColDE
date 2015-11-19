@@ -177,9 +177,9 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
       cbss2 = this.charBank.substring(cbPointer2, cbPointer2 + otherCs.ops[p2][1]);
       if (cbss1 <= cbss2) {
         resultCs.ops.push(['=', this.ops[p1][1]]);
-        resultCs.ops.push(['+', otherCs.ops[p2][1]);
+        resultCs.ops.push(['+', otherCs.ops[p2][1]]);
       } else {
-        resultCs.ops.push(['+', otherCs.ops[p2][1]);
+        resultCs.ops.push(['+', otherCs.ops[p2][1]]);
         resultCs.ops.push(['=', this.ops[p1][1]]);
       }
       cbPointer1 += this.ops[p1][1];
