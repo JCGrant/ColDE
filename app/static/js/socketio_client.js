@@ -62,9 +62,7 @@ var onAfterChange = function(changeset) {
 }
 
 var sender;
-console.log('nu se intra');
 if (typeof(sender) == 'undefined') {
-  console.log('se intra');
   sender = new Worker('countdown.js');
 }
 

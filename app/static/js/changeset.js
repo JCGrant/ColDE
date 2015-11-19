@@ -60,6 +60,26 @@ Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
 }
 
 /**
+ * Compresses a changeset, by combining the same adjacent ops.
+ */
+Changeset.prototype.compress = function() {
+
+  // Compress the resulting changeset.
+  var compressedOps = [];
+  for (var i = 0; i < this.ops.length; ++i) {
+    var j = i, sum = 0;
+    while (j < this.ops.length 
+      && this.ops[j][0] === this.ops[i][0]) {
+      sum += this.ops[j][1];
+      ++j;
+    }
+    compressedOps.push([this.ops[i][0], sum]);
+    i = j - 1;
+  }
+  this.ops = compressedOps;
+}
+
+/**
  * Returns a new changeset, the result of composing this with
  * a new changeset.
  */
@@ -137,19 +157,7 @@ Changeset.prototype.applyChangeset = function(newCs) {
     ++p;
   }
 
-  // Compress the resulting changeset.
-  compressedOps = [];
-  for (var i = 0; i < resultCs.ops.length; ++i) {
-    var j = i, sum = 0;
-    while (j < resultCs.ops.length 
-      && resultCs.ops[j][0] === resultCs.ops[i][0]) {
-      sum += resultCs.ops[j][1];
-      ++j;
-    }
-    compressedOps.push([resultCs.ops[i][0], sum]);
-    i = j - 1;
-  }
-  resultCs.ops = compressedOps;
+  resultCs.compress();
 
   return resultCs;
 };
@@ -201,10 +209,21 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
     if (left + this.ops[p1][1] - 1 === nextLeft) {
       ++p1;
     }
-    if (left + otherCs[p2][1] -1 === nextLeft) {
+    if (left + otherCs[p2][1] - 1 === nextLeft) {
       ++p2;
     }
     left = nextLeft + 1;
   }
   resultCs.charBank = otherCs.charBank;
+  
+  // Compress the resulting changeset.
+  resultCs.compress();
+  // Compute the new len of the changeset.
+  resultCs.newLen = 0;
+  for (var i = 0; i < resultCs.ops.length; ++i) {
+    if (resultCs.ops[i][0] == '=' || resultCs.ops[i][0] == '+') {
+      resultCs.newLen += resultCs.ops[i][1];
+    }
+  }
+  return resultCs;
 }
