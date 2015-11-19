@@ -153,3 +153,58 @@ Changeset.prototype.applyChangeset = function(newCs) {
 
   return resultCs;
 };
+
+var infinity = 2000000000;
+
+Changeset.prototype.mergeChangeset = function(otherCs) {
+  console.assert(this.baseLen == otherCs.baseLen, "bad lengths in composition");
+
+  // Initialise the resulting cs.
+  resultCs = new Changeset(0);
+  resultCs.ops = [];
+  resultCs.charBank = "";
+  resultCs.baseLen = this.baseLen;
+
+  // Perform the merge.
+  var p1 = 0, p2 = 0, left = 0;
+  var cbPointer1 = 0, cbPointer2 = 0;
+  this.ops.push(['', infinity]);
+  this.ops.push(['', infinity]);
+  while (p1 < this.ops.length - 1 || p2 < otherCs.ops.length - 1) {
+    var nextLeft = min(left + this.ops[p1][1], left + otherCs[p2][1]) - 1;
+    if (this.ops[p1][0] === '+' && otherCs[p2][0] === '+') {
+      cbss1 = this.charBank.substring(cbPointer1, cbPointer1 + this.ops[p1][1]);
+      cbss2 = this.charBank.substring(cbPointer2, cbPointer2 + otherCs.ops[p2][1]);
+      if (cbss1 <= cbss2) {
+        resultCs.ops.push(['=', this.ops[p1][1]]);
+        resultCs.ops.push(['+', otherCs.ops[p2][1]);
+      } else {
+        resultCs.ops.push(['+', otherCs.ops[p2][1]);
+        resultCs.ops.push(['=', this.ops[p1][1]]);
+      }
+      cbPointer1 += this.ops[p1][1];
+      cbPointer2 += otherCs.ops[p2][1];
+      ++p1; ++p2;
+    } else if (this.ops[p1][0] === '+') {
+      resultCs.ops.push(['=', this.ops[p1][1]]);
+      cbPointer1 += this.ops[p1][1];
+      ++p1;
+    } else if (otherCs[p2][0] === '+') {
+      resultCs.ops.push(otherCs[p2]);
+      cbPointer2 += otherCs.ops[p2][1];
+      ++p2;
+    }
+    if (this.ops[p1][0] === '=') {
+      resultCs.ops.push([otherCs.ops[p2][0], nextLeft - left + 1]);
+    }
+
+    if (left + this.ops[p1][1] - 1 === nextLeft) {
+      ++p1;
+    }
+    if (left + otherCs[p2][1] -1 === nextLeft) {
+      ++p2;
+    }
+    left = nextLeft + 1;
+  }
+  resultCs.charBank = otherCs.charBank;
+}
