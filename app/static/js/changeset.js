@@ -18,7 +18,7 @@ function Changeset(baseTextLen) {
  */
 var combineLines = function(lines) {
   var s = "";
-  if (typeof(lines) == 'undefined') {
+  if (typeof(lines) === 'undefined') {
     return s;
   }
   for (var i = 0; i < lines.length; ++i) {
@@ -64,11 +64,92 @@ Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
  * a new changeset.
  */
 Changeset.prototype.applyChangeset = function(newCs) {
+  console.assert(this.newLen == newCs.baseLen, "bad lengths in composition");
 
-  var line = 0;
-  var ch = 0;
-  for (var i = 0; i < this.ops.length; ++i) {
+  // Initialise the resulting cs.
+  resultCs = new Changeset(0);
+  resultCs.ops = [];
+  resultCs.charBank = "";
+  resultCs.newLen = newCs.newLen;
+  resultCs.baseLen = this.baseLen;
 
+  var p = 0, cbPointer1 = 0, cbPointer2 = 0;
+  for (var i = 0; i < newCs.ops.length; ++i) {
+    var op = newCs.ops[i][0];
+    var c = newCs.ops[i][1];
+    if (op === '=' || op === '-') {
+      while (c > 0) {
+        console.log('' + p);
+        if (this.ops[p][0] === '-') {
+          resultCs.ops.push(this.ops[p]);
+          ++p;
+        } else { // + or = in the initial cs.
+          if (c >= this.ops[p][1]) {
+            // We need more than this, so keep the initial operation.
+            c -= this.ops[p][1];
+            if (op === '=') {
+              resultCs.ops.push(this.ops[p]);
+            } else {
+              if (this.ops[p][0] === '=') {
+                resultCs.ops.push(['-', this.ops[p][1]]);
+              }
+            }
+            if (this.ops[p][0] === '+') {
+              if (op === '=') {
+                resultCs.charBank += this.charBank.substring(
+                  cbPointer1, cbPointer1 + this.ops[p][1]);
+              }
+              cbPointer1 += this.ops[p][1];
+            }
+            ++p;
+          } else {
+            // We need to split the initial operation.
+            if (this.ops[p][0] === '=') {
+              resultCs.ops.push([this.ops[p][0], c]);
+            }
+            
+            if (this.ops[p][0] === '+') {
+              if (op === '=') {
+                resultCs.ops.push(['+', c]);
+                resultCs.charBank += this.charBank.substring(
+                  cbPointer1, cbPointer1 + c);
+              }
+              cbPointer1 += c;
+            }
+            c = 0;
+            this.ops[p][1] -= c;
+          }
+        }
+      }
+    } else if (op === '+') {
+      resultCs.ops.push(newCs.ops[i]);
+      resultCs.charBank += newCs.charBank.substring(
+        cbPointer2, cbPointer2 + c);
+      cbPointer2 += c;
+    } else {
+      console.assert(false, "unknown operation");
+    }
   }
-  return this;
+  while (p < this.ops.length) {
+    if (this.ops[p][0] == '-') {
+      resultCs.ops.push(this.ops[p]);
+    }
+    ++p;
+  }
+
+  // Compress the resulting changeset.
+  compressedOps = [];
+  for (var i = 0; i < resultCs.ops.length; ++i) {
+    var j = i, sum = 0;
+    while (j < resultCs.ops.length 
+      && resultCs.ops[j][0] === resultCs.ops[i][0]) {
+      sum += resultCs.ops[j][1];
+      ++j;
+    }
+    compressedOps.push([resultCs.ops[i][0], sum]);
+    i = j - 1;
+  }
+  resultCs.ops = compressedOps;
+
+  return resultCs;
 };

@@ -56,6 +56,7 @@ var onAfterChange = function(changeset) {
   console.log('' + JSON.stringify(newCs));
   // Merge changeset with csY.
   csY = csY.applyChangeset(newCs);
+  console.log(JSON.stringify(csY));
   // TODO: maybe send to server.
   socket.emit('client_server_changeset', changeset);
 }
