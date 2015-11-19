@@ -21,25 +21,6 @@ editor.setOption('extraKeys', {
   "Ctrl-Space": "autocomplete"
 });
 
-blockedOrigins = ['external', 'setValue']
-editor.on('change', function(instance, changeset) {
-    // Do not propagate the update if it was from a different client.
-    if (changeset.hasOwnProperty('origin')
-        && blockedOrigins.indexOf(changeset['origin']) >= 0) {
-        return;
-    }
-    onNewChangeset(changeset);
-});
-
-processExternalChangeset = function(changeset) {
-  editor.replaceRange(changeset['text'], changeset['from'],
-      changeset['to'], 'external');
-}
-
-setPadContent = function(content) {
-  editor.setValue(content);
-}
-
 function getCompletions(token, context) {
   var found = [], start = token.string;
   function maybeAdd(str) {
@@ -163,3 +144,37 @@ function joinLines(cm) {
     cm.setSelections(ranges, 0);
   });
 }
+
+/*********** Functions managing interaction with the socketio_client *****/
+blockedOrigins = ['external', 'setValue']
+editor.on('change', function(instance, changeset) {
+    // Do not propagate the update if it was from a different client.
+    if (changeset.hasOwnProperty('origin')
+        && blockedOrigins.indexOf(changeset['origin']) >= 0) {
+        return;
+    }
+    onAfterChange(changeset);
+});
+
+processExternalChangeset = function(changeset) {
+  editor.replaceRange(changeset['text'], changeset['from'],
+      changeset['to'], 'external');
+};
+
+setPadContent = function(content) {
+  editor.setValue(content);
+};
+
+getAbsoluteOffset = function(position) {
+  var offset = 0;
+  for (var i = 0; i < position['line']; ++i) {
+    offset = offset + editor.getLine(i).length + 1;
+  }
+  offset = offset + position['ch'];
+  return offset;
+};
+
+getTextLength = function() {
+  console.log(editor.getValue("") + " --- " + editor.getValue("").length);
+  return editor.getValue("").length;
+};

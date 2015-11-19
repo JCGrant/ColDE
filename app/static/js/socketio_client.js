@@ -11,6 +11,11 @@ socket.on('connect', function() {
 var processExternalChangeset;
 // Function to be called to set the content of the pad.
 var setPadContent;
+// Function to compute the absolute offset in chars from the start of the file
+// of a position in format (line, ch)
+var getAbsoluteOffset;
+// Function to return the current length of the code mirror document.
+var getTextLength;
 
 /// Content of the pad as a string, taking into account only revisions
 /// received from the server or own ACKed revisions.
@@ -26,8 +31,8 @@ socket.on('message', function(data) {
     padContent = data['content'];
     setPadContent(padContent);
     // Initialise csX and csY to identity.
-    csX = new Changeset(length(padContent));
-    csY = new Changeset(length(padContent));
+    csX = new Changeset(padContent.length);
+    csY = new Changeset(padContent.length);
   }
 });
 
@@ -44,9 +49,13 @@ socket.on('server_client_changeset', function(changeset) {
  * Called by CodeMirror when a new local changeset is available.
  * Updates the local unsubmitted changeset and maybe submits it to server.
  */
-var onNewChangeset = function(changeset) {
+var onAfterChange = function(changeset) {
+  // Convert CM changeset to our format.
+  newCs = new Changeset(getTextLength()).fromCodeMirror(
+      changeset, getAbsoluteOffset(changeset['from']));
+  console.log('' + JSON.stringify(newCs));
   // Merge changeset with csY.
-  csY = mergeCodeMirrorChangeset(csY, changeset);
+  csY = csY.applyChangeset(newCs);
   // TODO: maybe send to server.
-  // socket.emit('client_server_changeset', changeset);
-};
+  socket.emit('client_server_changeset', changeset);
+}
