@@ -56,6 +56,11 @@ Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
   if (after > 0) {
     this.ops.push(['=', after]);
   }
+  // If no ops, put a =0.
+  if (this.ops.length === 0) {
+    this.ops.push(['=', 0]);
+  }
+
   return this;
 }
 
@@ -88,6 +93,10 @@ Changeset.prototype.compress = function() {
     compressedOps.push([this.ops[i][0], sum]);
     i = j - 1;
   }
+
+  if (compressedOps.length === 0) {
+    compressedOps = [['=', this.baseLen]];
+  }
   // Use the compressed ops, instead of the initial ones.
   this.ops = compressedOps;
 }
@@ -97,6 +106,8 @@ Changeset.prototype.compress = function() {
  * a new changeset.
  */
 Changeset.prototype.applyChangeset = function(newCs) {
+  console.log('this is: ' + JSON.stringify(this));
+  console.log('newc is: ' + JSON.stringify(newCs));
   console.assert(this.newLen == newCs.baseLen, "bad lengths in composition");
 
   // Initialise the resulting cs.
@@ -136,8 +147,10 @@ Changeset.prototype.applyChangeset = function(newCs) {
             ++p;
           } else {
             // We need to split the initial operation.
+            console.log('else');
             if (this.ops[p][0] === '=') {
-              resultCs.ops.push([this.ops[p][0], c]);
+              resultCs.ops.push([op, c]);
+              console.log('intra=');
             }
             
             if (this.ops[p][0] === '+') {
@@ -192,7 +205,8 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
   if (this.ops[0][0] != '+') {
     endp1 += this.ops[0][1];
   }
-  if (otherCs.ops[0][1] != '+') {
+  console.log('ABCD: ' + JSON.stringify(otherCs));
+  if (otherCs.ops[0][0] != '+') {
     endp2 += otherCs.ops[0][1];
   }
   // Add infinite length sentinels, to avoid some particular cases.

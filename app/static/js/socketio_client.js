@@ -52,6 +52,8 @@ socket.on('server_client_changeset', function(cs) {
   changeset.ops      = cs['ops'];
   changeset.charBank = cs['charBank'];
 
+  console.log('A :' + JSON.stringify(csA));
+  console.log('changeset: ' + JSON.stringify(changeset));
   var nextA = csA.applyChangeset(changeset);
   var nextX = changeset.mergeChangeset(csX);
   var nextY = csX.mergeChangeset(changeset).mergeChangeset(csY);
@@ -60,6 +62,7 @@ socket.on('server_client_changeset', function(cs) {
   csA = nextA;
   csX = nextX;
   csY = nextY;
+  console.log('D was ' + JSON.stringify(D));
   // Apply D changeset on current code mirror view.
   processExternalChangeset(D);
 });
@@ -81,7 +84,9 @@ var onAfterChange = function(changeset) {
   newCs = new Changeset(getTextLength()).fromCodeMirror(
       changeset, getAbsoluteOffset(changeset['from']));
   // Merge changeset with csY.
+  console.log('-> ' + JSON.stringify(newCs));
   csY = csY.applyChangeset(newCs);
+  console.log('-> ' + JSON.stringify(csY));
 }
 
 var sender;
@@ -105,6 +110,7 @@ var maybeSend = function() {
     return;
   }
   
+  console.log(JSON.stringify(csY));
   // Send.
   socket.emit('client_server_changeset', csY);
   // Update changesets.
