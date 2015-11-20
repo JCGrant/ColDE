@@ -22,9 +22,10 @@ def disconnect():
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
+    # Include the id of the client that generated the changeset.
     changeset['clientId'] = request.sid
     # TODO(mihai): update server state.
-    # emit('server_client_changeset', changeset, broadcast=True)
+    emit('server_client_changeset', changeset, broadcast=True)
     emit('server_client_ack', '', room=request.sid)
 
 def combineLines(lines):

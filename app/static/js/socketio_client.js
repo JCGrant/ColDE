@@ -44,8 +44,17 @@ socket.on('server_client_changeset', function(changeset) {
   if (changeset['clientId'] === userId) {
     return;
   }
-  // Process update.
-  processExternalChangeset(changeset);
+
+  var nextA = csA.applyChangeset(changeset);
+  var nextX = changeset.mergeChangeset(csX);
+  var nextY = csX.mergeChangeset(changeset).mergeChangeset(csY);
+  var D     = csY.mergeChangeset(csX.mergeChangeset(changeset));
+  // Update changesets.
+  csA = nextA;
+  csX = nextX;
+  csY = nextY;
+  // Apply D changeset on current code mirror view.
+  processExternalChangeset(D);
 });
 
 // TODO(mihai): check how to use a socket.io callback for this.
