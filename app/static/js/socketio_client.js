@@ -67,5 +67,5 @@ if (typeof(sender) == 'undefined') {
 }
 
 tick = function() {
-  console.log('tick');
+  // console.log('tick');
 }

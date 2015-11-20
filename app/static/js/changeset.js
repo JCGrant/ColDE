@@ -63,19 +63,21 @@ Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
  * Compresses a changeset, by combining the same adjacent ops.
  */
 Changeset.prototype.compress = function() {
-
-  // Compress the resulting changeset.
+  // Array of compressed ops.
   var compressedOps = [];
   for (var i = 0; i < this.ops.length; ++i) {
+    // Compute maximal segment with the same operation.
     var j = i, sum = 0;
     while (j < this.ops.length 
       && this.ops[j][0] === this.ops[i][0]) {
       sum += this.ops[j][1];
       ++j;
     }
+    // Merge it.
     compressedOps.push([this.ops[i][0], sum]);
     i = j - 1;
   }
+  // Use the compressed ops, instead of the initial ones.
   this.ops = compressedOps;
 }
 
@@ -165,24 +167,38 @@ Changeset.prototype.applyChangeset = function(newCs) {
 var infinity = 2000000000;
 
 Changeset.prototype.mergeChangeset = function(otherCs) {
-  console.assert(this.baseLen == otherCs.baseLen, "bad lengths in composition");
+  console.assert(this.baseLen == otherCs.baseLen, "bad lengths in merge");
 
   // Initialise the resulting cs.
   resultCs = new Changeset(0);
   resultCs.ops = [];
   resultCs.charBank = "";
-  resultCs.baseLen = this.baseLen;
+  resultCs.baseLen = this.newLen;
 
-  // Perform the merge.
+  // Init needed pointers.
   var p1 = 0, p2 = 0, left = 0;
   var cbPointer1 = 0, cbPointer2 = 0;
+  var endp1 = - 1, endp2 = - 1;
+  if (this.ops[0][0] != '+') {
+    endp1 += this.ops[0][1];
+  }
+  if (otherCs.ops[0][1] != '+') {
+    endp2 += otherCs.ops[0][1];
+  }
+  // Add infinite length sentinels, to avoid some particular cases.
   this.ops.push(['', infinity]);
-  this.ops.push(['', infinity]);
+  otherCs.ops.push(['', infinity]);
+  // Perform the merge.
   while (p1 < this.ops.length - 1 || p2 < otherCs.ops.length - 1) {
-    var nextLeft = min(left + this.ops[p1][1], left + otherCs[p2][1]) - 1;
-    if (this.ops[p1][0] === '+' && otherCs[p2][0] === '+') {
-      cbss1 = this.charBank.substring(cbPointer1, cbPointer1 + this.ops[p1][1]);
-      cbss2 = this.charBank.substring(cbPointer2, cbPointer2 + otherCs.ops[p2][1]);
+    // Two pluses => keep insertions in A, add insertions from B.
+    // Priority has the lexicographically lower change.
+    if (this.ops[p1][0] === '+' && otherCs.ops[p2][0] === '+') {
+      // Compare charbank substrings to be added here.
+      cbss1 = this.charBank.substring(
+        cbPointer1, cbPointer1 + this.ops[p1][1]);
+      cbss2 = otherCs.charBank.substring(
+        cbPointer2, cbPointer2 + otherCs.ops[p2][1]);
+      // Prioritise the lower one.
       if (cbss1 <= cbss2) {
         resultCs.ops.push(['=', this.ops[p1][1]]);
         resultCs.ops.push(['+', otherCs.ops[p2][1]]);
@@ -190,32 +206,48 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
         resultCs.ops.push(['+', otherCs.ops[p2][1]]);
         resultCs.ops.push(['=', this.ops[p1][1]]);
       }
+      // Update pointers.
       cbPointer1 += this.ops[p1][1];
       cbPointer2 += otherCs.ops[p2][1];
-      ++p1; ++p2;
+      ++p1; endp1 += this.ops[p1][1];
+      ++p2; endp2 += otherCs.ops[p2][1];
     } else if (this.ops[p1][0] === '+') {
+      // Additions in A become retained chars.
       resultCs.ops.push(['=', this.ops[p1][1]]);
       cbPointer1 += this.ops[p1][1];
-      ++p1;
-    } else if (otherCs[p2][0] === '+') {
-      resultCs.ops.push(otherCs[p2]);
+      // Update pointer.
+      ++p1; endp1 += this.ops[p1][1];
+    } else if (otherCs.ops[p2][0] === '+') {
+      // Additions in B become additions in B.
+      resultCs.ops.push(otherCs.ops[p2]);
       cbPointer2 += otherCs.ops[p2][1];
-      ++p2;
+      ++p2; endp2 += otherCs.ops[p2][1];
     }
+    // Compute the right of the current segment.
+    var right = Math.min(endp1, endp2);
     if (this.ops[p1][0] === '=') {
-      resultCs.ops.push([otherCs.ops[p2][0], nextLeft - left + 1]);
+      resultCs.ops.push([otherCs.ops[p2][0], right - left + 1]);
     }
-
-    if (left + this.ops[p1][1] - 1 === nextLeft) {
+    // Increment the pointers that no longer have elements.
+    if (endp1 === right) {
       ++p1;
+      if (this.ops[p1][0] != '+') {
+        endp1 += this.ops[p1][1];
+      }
     }
-    if (left + otherCs[p2][1] - 1 === nextLeft) {
+    if (endp2 === right) {
       ++p2;
+      if (otherCs.ops[p2][0] != '+') {
+        endp2 += otherCs.ops[p2][1];
+      }
     }
-    left = nextLeft + 1;
+    left = right + 1;
   }
+  // Remove infinite length elements.
+  this.ops.pop();
+  otherCs.ops.pop();
+
   resultCs.charBank = otherCs.charBank;
-  
   // Compress the resulting changeset.
   resultCs.compress();
   // Compute the new len of the changeset.
@@ -226,4 +258,24 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
     }
   }
   return resultCs;
+}
+
+var test = false;
+if (test) {
+  cs1 = new Changeset(0);
+  cs1.baseLen = 11;
+  cs1.newLen = 13;
+  cs1.ops = [['-', 2], ['+', 1], ['=', 2], ['+', 1], ['=', 4], ['+', 2], ['=', 3]];
+  cs1.charBank = "bbbb";
+
+  cs2 = new Changeset(0);
+  cs2.baseLen = 11;
+  cs2.newLen = 9;
+  cs2.ops = [['=', 4], ['-', 4], ['+', 2], ['=', 3]];
+  cs2.charBank = "cc";
+
+  var s1 = JSON.stringify(cs1.mergeChangeset(cs2));
+  var s2 = JSON.stringify(cs2.mergeChangeset(cs1));
+  console.log('f(cs1, cs2) = ' + s1);
+  console.log('f(cs2, cs1) = ' + s2);
 }
