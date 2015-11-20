@@ -60,6 +60,17 @@ Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
 }
 
 /**
+ * Returns true if a (compressed) changeset is identity changeset.
+ */
+Changeset.prototype.isIdentity = function() {
+  if (this.baseLen !== this.newLen) {
+    return false;
+  }
+  return this.ops.length === 1 
+    && this.ops[0][0] === '=' && this.ops[0][1] == this.baseLen;
+}
+
+/**
  * Compresses a changeset, by combining the same adjacent ops.
  */
 Changeset.prototype.compress = function() {

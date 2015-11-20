@@ -53,10 +53,8 @@ var onAfterChange = function(changeset) {
   // Convert CM changeset to our format.
   newCs = new Changeset(getTextLength()).fromCodeMirror(
       changeset, getAbsoluteOffset(changeset['from']));
-  console.log('' + JSON.stringify(newCs));
   // Merge changeset with csY.
   csY = csY.applyChangeset(newCs);
-  console.log(JSON.stringify(csY));
   // TODO: maybe send to server.
   socket.emit('client_server_changeset', changeset);
 }
@@ -66,6 +64,28 @@ if (typeof(sender) == 'undefined') {
   sender = new Worker('countdown.js');
 }
 
+/**
+ * Timestamp for the last moment when local changes were submitted to server.
+ */
+var lastSent = 0;
+/**
+ * Decides whether to send the local changes to server or not.
+ * Also does the sending of local changes if it is the case.
+ */
+var maybeSend() {
+  var t = new Date().getTime();
+  // 500ms have to pass since last sent, we mush have received ACK for the
+  // last submitted changelist, and local changes have to exist.
+  if (t - lastSent < 500 || !csX.isIdentity() || csY.isIdentity()) {
+    return;
+  }
+  // TODO: Send.
+  lastSent = t;
+}
+
+/**
+ * Called every 500ms.
+ */
 tick = function() {
-  // console.log('tick');
+  maybeSend();
 }
