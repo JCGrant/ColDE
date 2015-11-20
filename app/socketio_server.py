@@ -23,9 +23,9 @@ def disconnect():
 def handle(changeset):
     print ('Received ' + str(changeset))
     changeset['clientId'] = request.sid
-    emit('server_client_changeset', changeset, broadcast=True)
-    # Update pad contents.
-    applyChangeset(initPad, changeset)
+    # TODO(mihai): update server state.
+    # emit('server_client_changeset', changeset, broadcast=True)
+    emit('server_client_ack', '', room=request.sid)
 
 def combineLines(lines):
     # Combine an array of lines into a single string.

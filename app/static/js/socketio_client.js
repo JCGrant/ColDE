@@ -17,9 +17,11 @@ var getAbsoluteOffset;
 // Function to return the current length of the code mirror document.
 var getTextLength;
 
-/// Content of the pad as a string, taking into account only revisions
-/// received from the server or own ACKed revisions.
-var padContent;
+/// Initial content of the pad as a string.
+var initPadContent;
+/// Changeset containing only revisions received from the server
+/// or own ACKed revisions.
+var csA;
 /// Submitted composition of changesets to server, still waiting for ACK.
 var csX;
 /// Unsubmitted local composition of changes.
@@ -28,11 +30,12 @@ var csY;
 socket.on('message', function(data) {
   if (data['type'] === 'initial') {
     // Set current content of the pad.
-    padContent = data['content'];
-    setPadContent(padContent);
-    // Initialise csX and csY to identity.
-    csX = new Changeset(padContent.length);
-    csY = new Changeset(padContent.length);
+    initPadContent = data['content'];
+    setPadContent(initPadContent);
+    // Initialise csA, csX and csY to identity.
+    csA = new Changeset(initPadContent.length);
+    csX = new Changeset(initPadContent.length);
+    csY = new Changeset(initPadContent.length);
   }
 });
 
@@ -45,6 +48,14 @@ socket.on('server_client_changeset', function(changeset) {
   processExternalChangeset(changeset);
 });
 
+// TODO(mihai): check how to use a socket.io callback for this.
+socket.on('server_client_ack', function() {
+  // TODO(mihai): update editor content.
+  // Update changesets.
+  csA.applyChangeset(csX);
+  csX = new Changeset(csA.newLen);
+})
+
 /**
  * Called by CodeMirror when a new local changeset is available.
  * Updates the local unsubmitted changeset and maybe submits it to server.
@@ -56,7 +67,7 @@ var onAfterChange = function(changeset) {
   // Merge changeset with csY.
   csY = csY.applyChangeset(newCs);
   // TODO: maybe send to server.
-  socket.emit('client_server_changeset', changeset);
+  
 }
 
 var sender;
@@ -72,14 +83,20 @@ var lastSent = 0;
  * Decides whether to send the local changes to server or not.
  * Also does the sending of local changes if it is the case.
  */
-var maybeSend() {
+var maybeSend = function() {
   var t = new Date().getTime();
   // 500ms have to pass since last sent, we mush have received ACK for the
   // last submitted changelist, and local changes have to exist.
   if (t - lastSent < 500 || !csX.isIdentity() || csY.isIdentity()) {
     return;
   }
-  // TODO: Send.
+  
+  // Send.
+  socket.emit('client_server_changeset', csY);
+  // Update changesets.
+  csX = csY;
+  csY = new Changeset(getTextLength());
+
   lastSent = t;
 }
 
