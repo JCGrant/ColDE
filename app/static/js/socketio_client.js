@@ -39,11 +39,18 @@ socket.on('message', function(data) {
   }
 });
 
-socket.on('server_client_changeset', function(changeset) {
+socket.on('server_client_changeset', function(cs) {
   // Skip the changeset if it was issued by us.
-  if (changeset['clientId'] === userId) {
+  if (cs['clientId'] === userId) {
     return;
   }
+
+  // Create changeset.
+  var changeset = new Changeset(0);
+  changeset.baseLen  = cs['baseLen'];
+  changeset.newLen   = cs['newLen'];
+  changeset.ops      = cs['ops'];
+  changeset.charBank = cs['charBank'];
 
   var nextA = csA.applyChangeset(changeset);
   var nextX = changeset.mergeChangeset(csX);
@@ -61,7 +68,7 @@ socket.on('server_client_changeset', function(changeset) {
 socket.on('server_client_ack', function() {
   // TODO(mihai): update editor content.
   // Update changesets.
-  csA.applyChangeset(csX);
+  csA = csA.applyChangeset(csX);
   csX = new Changeset(csA.newLen);
 })
 
@@ -75,8 +82,6 @@ var onAfterChange = function(changeset) {
       changeset, getAbsoluteOffset(changeset['from']));
   // Merge changeset with csY.
   csY = csY.applyChangeset(newCs);
-  // TODO: maybe send to server.
-  
 }
 
 var sender;

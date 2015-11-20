@@ -112,7 +112,6 @@ Changeset.prototype.applyChangeset = function(newCs) {
     var c = newCs.ops[i][1];
     if (op === '=' || op === '-') {
       while (c > 0) {
-        console.log('' + p);
         if (this.ops[p][0] === '-') {
           resultCs.ops.push(this.ops[p]);
           ++p;
@@ -234,6 +233,10 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
       cbPointer2 += otherCs.ops[p2][1];
       ++p2; endp2 += otherCs.ops[p2][1];
     }
+    // Check whether afrer processing +'s we must stop.
+    if (p1 >= this.ops.length - 1 && p2 >= otherCs.ops.length - 1) {
+      break;
+    }
     // Compute the right of the current segment.
     var right = Math.min(endp1, endp2);
     if (this.ops[p1][0] === '=') {
@@ -242,6 +245,7 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
     // Increment the pointers that no longer have elements.
     if (endp1 === right) {
       ++p1;
+      console.log('p1 is ' + p1 + ' ' + this.ops.length);
       if (this.ops[p1][0] != '+') {
         endp1 += this.ops[p1][1];
       }

@@ -156,9 +156,35 @@ editor.on('change', function(instance, changeset) {
     onAfterChange(changeset);
 });
 
+/**
+ * Applies changeset to current editor content.
+ */
 processExternalChangeset = function(changeset) {
-  editor.replaceRange(changeset['text'], changeset['from'],
-      changeset['to'], 'external');
+  var prevContent = editor.getValue("");
+  console.log('content: ' + prevContent);
+  console.log(JSON.stringify(changeset));
+  console.assert(
+    changeset.baseLen === prevContent.length, "cannot apply change");
+
+  // TODO: do it smart.
+  var updatedContent = "";
+  var cbPointer = 0, prevContentPointer = 0;
+  for (var i = 0; i < changeset.ops.length; ++i) {
+    var op = changeset.ops[i][0], c = changeset.ops[i][1];
+    if (op === '+') {
+      updatedContent += 
+        changeset.charBank.substring(cbPointer, cbPointer + c);
+      cbPointer += c;
+    } else {
+      if (op === '=') {
+        updatedContent += 
+          prevContent.substring(prevContentPointer, prevContentPointer + c);
+      }
+      prevContentPointer += c;
+    }
+  }
+  // Set the content to the one updated.
+  editor.setValue(updatedContent);
 };
 
 setPadContent = function(content) {
@@ -175,6 +201,5 @@ getAbsoluteOffset = function(position) {
 };
 
 getTextLength = function() {
-  console.log(editor.getValue("") + " --- " + editor.getValue("").length);
   return editor.getValue("").length;
 };
