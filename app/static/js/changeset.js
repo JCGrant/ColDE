@@ -9,7 +9,7 @@ function Changeset(baseTextLen) {
   // One skip everything operation.
   this.ops = [['=', baseTextLen]];
   // Empty char bank.
-  this.charBank = "";
+  this.charBank = '';
 }
 
 /**
@@ -17,7 +17,7 @@ function Changeset(baseTextLen) {
  * after each line.
  */
 var combineLines = function(lines) {
-  var s = "";
+  var s = '';
   if (typeof(lines) === 'undefined') {
     return s;
   }
@@ -37,14 +37,14 @@ var combineLines = function(lines) {
 Changeset.prototype.fromCodeMirror = function(CMCs, fromOffset) {
   // Init ops & char bank.
   this.ops = [];
-  this.charBank = "";
+  this.charBank = '';
   if (fromOffset > 0) {
     this.ops.push(['=', fromOffset]);
   }
   var text = combineLines(CMCs['text']);
   var removed = combineLines(CMCs['removed']).length;
-  // Set baselen.
-  this.baseLen = this.newLen + removed - text.length;
+  // Set newlen.
+  this.newLen = this.baseLen + text.length - removed;
   if (removed > 0) {
     this.ops.push(['-', removed]);
   }
@@ -111,7 +111,7 @@ Changeset.prototype.applyChangeset = function(newCs) {
   // Initialise the resulting cs.
   resultCs = new Changeset(0);
   resultCs.ops = [];
-  resultCs.charBank = "";
+  resultCs.charBank = '';
   resultCs.newLen = newCs.newLen;
   resultCs.baseLen = this.baseLen;
 
@@ -157,8 +157,9 @@ Changeset.prototype.applyChangeset = function(newCs) {
               }
               cbPointer1 += c;
             }
-            c = 0;
+
             this.ops[p][1] -= c;
+            c = 0;
           }
         }
       }
@@ -177,7 +178,7 @@ Changeset.prototype.applyChangeset = function(newCs) {
     }
     ++p;
   }
-
+  
   resultCs.compress();
 
   return resultCs;
@@ -191,7 +192,7 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
   // Initialise the resulting cs.
   resultCs = new Changeset(0);
   resultCs.ops = [];
-  resultCs.charBank = "";
+  resultCs.charBank = '';
   resultCs.baseLen = this.newLen;
 
   // Init needed pointers.
@@ -283,8 +284,11 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
   return resultCs;
 }
 
+/////////////////// TESTS ////////////////////
 var test = false;
+
 if (test) {
+  // Merge test.
   cs1 = new Changeset(0);
   cs1.baseLen = 11;
   cs1.newLen = 13;
@@ -301,4 +305,24 @@ if (test) {
   var s2 = JSON.stringify(cs2.mergeChangeset(cs1));
   console.log('f(cs1, cs2) = ' + s1);
   console.log('f(cs2, cs1) = ' + s2);
+}
+
+if (test) {
+  // Apply test.
+  cs1 = new Changeset(0);
+  cs1.baseLen = 16;
+  cs1.newLen = 19;
+  cs1.ops = [['=', 15], ['+', 3], ['=', 1]];
+  cs1.charBank = " {}";
+
+  cs2 = new Changeset(0);
+  cs2.baseLen = 19;
+  cs2.newLen = 21;
+  cs2.ops = [['=', 17], ['+', 2], ['=', 2]];
+  cs2.charBank = "\n\n";
+
+  console.log('cs1 = ' + JSON.stringify(cs1));
+  console.log('cs2 = ' + JSON.stringify(cs2));
+  var s = JSON.stringify(cs1.applyChangeset(cs2));
+  console.log('cs1 * cs2 = ' + s);
 }

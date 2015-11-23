@@ -16,6 +16,8 @@ var setPadContent;
 var getAbsoluteOffset;
 // Function to return the current length of the code mirror document.
 var getTextLength;
+// Function to return a range in the current editor.
+var getTextRange;
 
 /// Initial content of the pad as a string.
 var initPadContent;
@@ -26,6 +28,8 @@ var csA;
 var csX;
 /// Unsubmitted local composition of changes.
 var csY;
+/// Length of text before the next changelist is applied.
+var prevLen;
 
 socket.on('message', function(data) {
   if (data['type'] === 'initial') {
@@ -45,6 +49,7 @@ socket.on('server_client_changeset', function(cs) {
     return;
   }
 
+  console.log('client received ' + JSON.stringify(cs));
   // Create changeset.
   var changeset = new Changeset(0);
   changeset.baseLen  = cs['baseLen'];
@@ -78,10 +83,35 @@ socket.on('server_client_ack', function() {
  */
 var onAfterChange = function(changeset) {
   // Convert CM changeset to our format.
-  newCs = new Changeset(getTextLength()).fromCodeMirror(
+  // console.log('prevlen ' + prevLen);
+  // newCs = new Changeset(prevLen).fromCodeMirror(
+  //     changeset, getAbsoluteOffset(changeset['from']));
+  // // Merge changeset with csY.
+  // console.log('csY is ' + JSON.stringify(csY));
+  // console.log('newCs is ' + JSON.stringify(newCs));
+  // csY = csY.applyChangeset(newCs);
+}
+
+var sender;
+if (typeof(sender) == 'undefined') {
+  sender = new Worker('countdown.js');
+}
+
+/**
+ * Called by CodeMirror before a new local changeset becomes available.
+ * Updates the prev length of the text.
+ */
+var onBeforeChange = function(changeset) {
+  prevLen = getTextLength();
+  changeset['removed'] = [getTextRange(changeset['from'], changeset['to'])];
+  newCs = new Changeset(prevLen).fromCodeMirror(
       changeset, getAbsoluteOffset(changeset['from']));
   // Merge changeset with csY.
+  console.log('initial cs ' + JSON.stringify(changeset));
+  console.log('csY is ' + JSON.stringify(csY));
+  console.log('newCs is ' + JSON.stringify(newCs));
   csY = csY.applyChangeset(newCs);
+  console.log('csY becomes ' + JSON.stringify(csY));
 }
 
 var sender;
