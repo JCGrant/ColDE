@@ -149,7 +149,7 @@ function joinLines(cm) {
 blockedOrigins = ['external', 'setValue']
 editor.on('change', function(instance, changeset) {
     // Do not propagate the update if it was from a different client.
-    console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    console.log(JSON.stringify(changeset));
     if (changeset.hasOwnProperty('origin')
         && blockedOrigins.indexOf(changeset['origin']) >= 0) {
         return;
@@ -163,8 +163,6 @@ editor.on('change', function(instance, changeset) {
  */
 processExternalChangeset = function(changeset) {
   var prevContent = editor.getValue("");
-  console.log('content: ' + prevContent);
-  console.log(JSON.stringify(changeset));
   console.assert(
     changeset.baseLen === prevContent.length, "cannot apply change");
 

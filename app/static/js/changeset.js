@@ -106,8 +106,6 @@ Changeset.prototype.compress = function() {
  * a new changeset.
  */
 Changeset.prototype.applyChangeset = function(newCs) {
-  console.log('this is: ' + JSON.stringify(this));
-  console.log('newc is: ' + JSON.stringify(newCs));
   console.assert(this.newLen == newCs.baseLen, "bad lengths in composition");
 
   // Initialise the resulting cs.
@@ -147,10 +145,8 @@ Changeset.prototype.applyChangeset = function(newCs) {
             ++p;
           } else {
             // We need to split the initial operation.
-            console.log('else');
             if (this.ops[p][0] === '=') {
               resultCs.ops.push([op, c]);
-              console.log('intra=');
             }
             
             if (this.ops[p][0] === '+') {
@@ -205,7 +201,6 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
   if (this.ops[0][0] != '+') {
     endp1 += this.ops[0][1];
   }
-  console.log('ABCD: ' + JSON.stringify(otherCs));
   if (otherCs.ops[0][0] != '+') {
     endp2 += otherCs.ops[0][1];
   }
@@ -259,7 +254,6 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
     // Increment the pointers that no longer have elements.
     if (endp1 === right) {
       ++p1;
-      console.log('p1 is ' + p1 + ' ' + this.ops.length);
       if (this.ops[p1][0] != '+') {
         endp1 += this.ops[p1][1];
       }
