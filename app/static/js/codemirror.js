@@ -176,25 +176,31 @@ processExternalChangeset = function(changeset) {
   console.assert(
     changeset.baseLen === prevContent.length, "cannot apply change");
 
-  // TODO: do it smart.
-  var updatedContent = "";
-  var cbPointer = 0, prevContentPointer = 0;
-  for (var i = 0; i < changeset.ops.length; ++i) {
-    var op = changeset.ops[i][0], c = changeset.ops[i][1];
-    if (op === '+') {
-      updatedContent += 
-        changeset.charBank.substring(cbPointer, cbPointer + c);
-      cbPointer += c;
-    } else {
-      if (op === '=') {
-        updatedContent += 
-          prevContent.substring(prevContentPointer, prevContentPointer + c);
+  // Wrap everything in an atomic operation.
+  editor.operation(function() {
+    // Init content and char back pointers.
+    var contentPointer = prevContent.length;
+    var cbPointer = changeset.charBank.length;
+    for (var i = changeset.ops.length - 1; i >= 0; --i) {
+      var op = changeset.ops[i][0], c = changeset.ops[i][1];
+      if (op === '+') {
+        // Insert in the editor.
+        editor.replaceRange(
+          changeset.charBank.substring(cbPointer - c, cbPointer), 
+          editor.posFromIndex(contentPointer), 
+          editor.posFromIndex(contentPointer), 'external');
+        cbPointer -= c;
+      } else if (op === '-') {
+        // Remove range.
+        editor.replaceRange('', editor.posFromIndex(contentPointer - c), 
+          editor.posFromIndex(contentPointer), 'external');
+        contentPointer -= c;
+      } else {
+        // Leave chars unchanged.
+        contentPointer -= c;
       }
-      prevContentPointer += c;
     }
-  }
-  // Set the content to the one updated.
-  editor.setValue(updatedContent);
+  });
 };
 
 setPadContent = function(content) {

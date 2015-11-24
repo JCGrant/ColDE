@@ -30,6 +30,8 @@ var csX;
 var csY;
 /// Length of text before the next changelist is applied.
 var prevLen;
+/// The last revision received from server.
+var baseRev = 0;
 
 socket.on('message', function(data) {
   if (data['type'] === 'initial') {
@@ -67,6 +69,8 @@ socket.on('server_client_changeset', function(cs) {
   csY = nextY;
   // Apply D changeset on current code mirror view.
   processExternalChangeset(D);
+  // Update base changeset.
+  baseRev = cs['baseRev'];
 });
 
 // TODO(mihai): check how to use a socket.io callback for this.
@@ -114,11 +118,6 @@ var onBeforeChange = function(changeset) {
   console.log('csY becomes ' + JSON.stringify(csY));
 }
 
-var sender;
-if (typeof(sender) == 'undefined') {
-  sender = new Worker('countdown.js');
-}
-
 /**
  * Timestamp for the last moment when local changes were submitted to server.
  */
@@ -136,12 +135,21 @@ var maybeSend = function() {
   }
   
   // Send.
+  csY['baseRev'] = baseRev;
   socket.emit('client_server_changeset', csY);
   // Update changesets.
   csX = csY;
   csY = new Changeset(getTextLength());
 
   lastSent = t;
+}
+
+/**
+ * Create the 500ms ticker.
+ */
+var sender;
+if (typeof(sender) == 'undefined') {
+  sender = new Worker('countdown.js');
 }
 
 /**
