@@ -42,7 +42,7 @@ def logout():
 def home():
     return '<p>home<p>'
 
-@app.route('/')
+@app.route('/project/<int:id>')
 @login_required
-def editor():
-    return render_template('editor.html')
+def project():
+    return render_template('project.html')
