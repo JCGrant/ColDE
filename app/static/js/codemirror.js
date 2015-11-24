@@ -147,15 +147,6 @@ function joinLines(cm) {
 
 /*********** Functions managing interaction with the socketio_client *****/
 blockedOrigins = ['external', 'setValue']
-editor.on('change', function(instance, changeset) {
-  // Do not propagate the update if it was from a different client.
-  if (changeset.hasOwnProperty('origin')
-      && blockedOrigins.indexOf(changeset['origin']) >= 0) {
-      return;
-  }
-  
-  onAfterChange(changeset);
-});
 
 editor.on('beforeChange', function(instance, changeset) {
   // Do not propagate the update if it was from a different client.
@@ -172,7 +163,6 @@ editor.on('beforeChange', function(instance, changeset) {
  */
 processExternalChangeset = function(changeset) {
   var prevContent = editor.getValue("");
-  console.log('length is ' + prevContent.length + ' and content is ' + prevContent);
   console.assert(
     changeset.baseLen === prevContent.length, "cannot apply change");
 

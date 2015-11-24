@@ -51,7 +51,6 @@ socket.on('server_client_changeset', function(cs) {
     return;
   }
 
-  console.log('client received ' + JSON.stringify(cs));
   // Create changeset.
   var changeset = new Changeset(0);
   changeset.baseLen  = cs['baseLen'];
@@ -86,14 +85,7 @@ socket.on('server_client_ack', function() {
  * Updates the local unsubmitted changeset and maybe submits it to server.
  */
 var onAfterChange = function(changeset) {
-  // Convert CM changeset to our format.
-  // console.log('prevlen ' + prevLen);
-  // newCs = new Changeset(prevLen).fromCodeMirror(
-  //     changeset, getAbsoluteOffset(changeset['from']));
-  // // Merge changeset with csY.
-  // console.log('csY is ' + JSON.stringify(csY));
-  // console.log('newCs is ' + JSON.stringify(newCs));
-  // csY = csY.applyChangeset(newCs);
+
 }
 
 var sender;
@@ -111,11 +103,7 @@ var onBeforeChange = function(changeset) {
   newCs = new Changeset(prevLen).fromCodeMirror(
       changeset, getAbsoluteOffset(changeset['from']));
   // Merge changeset with csY.
-  console.log('initial cs ' + JSON.stringify(changeset));
-  console.log('csY is ' + JSON.stringify(csY));
-  console.log('newCs is ' + JSON.stringify(newCs));
   csY = csY.applyChangeset(newCs);
-  console.log('csY becomes ' + JSON.stringify(csY));
 }
 
 /**
