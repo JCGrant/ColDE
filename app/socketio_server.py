@@ -18,14 +18,13 @@ revisions = []
 
 @socketio.on('connect')
 def connect():
-    users[request.sid] = User()
     # Send the user the current content of the pad.
     send({'type' : 'initial', 'content' : init_pad.text}, room=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():
-    del users[request.sid]
-
+    pass
+    
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
