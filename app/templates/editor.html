@@ -53,8 +53,10 @@
             <li><a href="#">View</a></li>
             <li><a href="#">Tools</a></li>
             <li><a href="#">Help</a></li>
-	    <li><input id="clickJs" type="button" value="runJs"/></li>
-	    <li><input id="clickSkulpt" type="button" value = "runSkulpt"/></li> 
+	          <li><input id="clickJs" type="button" value="runJs"/></li>
+	          <li><input id="clickSkulpt" type="button" value = "runSkulpt"/></li> 
+            <li><input id="clickShowConsole" type="button" value="Show Console"/></li>
+            <li><input id="clickCloseConsole" type="button" value="Close Console"/></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">Login</a></li>
@@ -76,12 +78,14 @@
             <li>app.py</li>
           </ul>
         </div>
-        <div class="col-md-5">
+        <div id="editorview" class="col-md-10">
           <textarea id="editorArea"></textarea>
           <pre id="output" ></pre> 
           <div id="mycanvas" ></div>
         </div>
-        <iframe scrolling="yes" sandbox="" class="col-md-5" id="webview"></iframe>
+        <div id="frameview">
+          <!-- <iframe scrolling="yes" sandbox="" class="col-md-5" id="webview"></iframe> -->
+        </div>
       </div>
     </div>
 
