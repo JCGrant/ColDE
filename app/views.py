@@ -37,10 +37,10 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route('/home')
+@app.route('/')
 @login_required
 def home():
-    return '<p>home<p>'
+    return render_template('home.html', user=g.user)
 
 @app.route('/project/new', methods=['GET'])
 @login_required

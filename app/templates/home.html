@@ -1,0 +1,13 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <p>Hello {{ user.username }}!</p>
+    <h1>Projects</h1>
+    <ul>
+      {% for project in user.projects.all() %}
+        <li><a href='/project/{{ project.id }}'>{{ project.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
