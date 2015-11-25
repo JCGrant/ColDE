@@ -9,6 +9,13 @@ function runJScode() {
     restoreConsole();
 }
 
+editor.on('change', function runHTML() {
+    var web = editor.getValue();
+    var myPre = document.getElementById("webview");
+    myPre.src = "data:text/html;charset=utf-8," + escape(web);
+});
+
+
 function takeOverConsole(mypre){
     var console = window.console;
     if (!console) return;
@@ -33,22 +40,6 @@ function takeOverConsole(mypre){
 
 function restoreConsole(){
     delete console.log;
-}
-
-
-
-function runHTML() {
-    var web = editor.getValue();
-    var myPre = document.getElementById("webview");
-    myPre.src = "data:text/html;charset=utf-8," + escape(web);
-}
-
-function runPYcode() {
-    var mypre = document.getElementById("output"); 
-    takeOverConsole(mypre);
-    var py = editor.getValue();
-    pypyjs.exec(py);
-    restoreConsole();
 }
 
 function outf(text) { 
@@ -82,7 +73,5 @@ function runit() {
 
 $("#clickSkulpt").click(runit);
 $("#clickJs").click(runJScode);
-$("#clickHTML").click(runHTML);
-$("#clickPy").click(runPYcode);
 
 
