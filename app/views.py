@@ -1,7 +1,7 @@
-from flask import render_template, redirect, flash, url_for, g
+from flask import render_template, redirect, flash, url_for, g, request
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
-from .models import User
+from .models import User, Project, Pad
 from .forms import LoginForm
 
 @lm.user_loader
@@ -37,12 +37,38 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-@app.route('/home')
-@login_required
-def home():
-    return '<p>home<p>'
-
 @app.route('/')
 @login_required
-def editor():
-    return render_template('editor.html')
+def home():
+    return render_template('home.html', user=g.user)
+
+@app.route('/project/new', methods=['GET'])
+@login_required
+def new_project():
+    title = request.args.get('title', 'New Project')
+    project = Project(title)
+    project.users.append(g.user)
+    db.session.add(project)
+    db.session.commit()
+    return redirect(url_for('project', id=project.id))
+
+@app.route('/project/<int:id>')
+@login_required
+def project(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    return render_template('project.html', project=project)
+
+@app.route('/pad/new', methods=['GET'])
+@login_required
+def new_pad():
+    filename = request.args.get('filename', 'new_file')
+    project_id = request.args.get('project_id', '')
+    project = Project.query.get(int(project_id))
+    if project is None:
+        return redirect(url_for('home'))
+    pad = Pad(filename, project)
+    db.session.add(pad)
+    db.session.commit()
+    return redirect(url_for('project', id=project.id)) 
