@@ -53,7 +53,6 @@ class Classroom(db.Model):
     def __repr__(self):
         return self.title
 
-
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
@@ -70,3 +69,14 @@ class Pad(db.Model):
 
     def __repr__(self):
         return self.title
+    def __init__(self):
+        self.text = '\n'
+
+
+# Class to represent a user revision.
+# TODO(mihai): maybe put it in a separate file. Not really a model (yet).
+class Revision:
+    def __init__(self, id, changeset):
+        self.id = id
+        self.changeset = changeset
+

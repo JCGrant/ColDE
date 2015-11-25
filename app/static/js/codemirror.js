@@ -21,20 +21,6 @@ editor.setOption('extraKeys', {
   "Ctrl-Space": "autocomplete"
 });
 
-editor.on('change', function(instance, changeset) {
-    // Do not propagate the update if it was already from a different client.
-    if (changeset.hasOwnProperty('origin')
-        && changeset['origin'] === 'external') {
-        return;
-    }
-    onNewChangeset(changeset);
-});
-
-processExternalChangeset = function(changeset) {
-  editor.replaceRange(changeset['text'], changeset['from'],
-      changeset['to'], 'external');
-}
-
 function getCompletions(token, context) {
   var found = [], start = token.string;
   function maybeAdd(str) {
@@ -157,4 +143,73 @@ function joinLines(cm) {
     }
     cm.setSelections(ranges, 0);
   });
+}
+
+/*********** Functions managing interaction with the socketio_client *****/
+blockedOrigins = ['external', 'setValue']
+
+editor.on('beforeChange', function(instance, changeset) {
+  // Do not propagate the update if it was from a different client.
+  if (changeset.hasOwnProperty('origin')
+      && blockedOrigins.indexOf(changeset['origin']) >= 0) {
+      return;
+  }
+  
+  onBeforeChange(changeset);
+});
+
+/**
+ * Applies changeset to current editor content.
+ */
+processExternalChangeset = function(changeset) {
+  var prevContent = editor.getValue("");
+  console.assert(
+    changeset.baseLen === prevContent.length, "cannot apply change");
+
+  // Wrap everything in an atomic operation.
+  editor.operation(function() {
+    // Init content and char back pointers.
+    var contentPointer = prevContent.length;
+    var cbPointer = changeset.charBank.length;
+    for (var i = changeset.ops.length - 1; i >= 0; --i) {
+      var op = changeset.ops[i][0], c = changeset.ops[i][1];
+      if (op === '+') {
+        // Insert in the editor.
+        editor.replaceRange(
+          changeset.charBank.substring(cbPointer - c, cbPointer), 
+          editor.posFromIndex(contentPointer), 
+          editor.posFromIndex(contentPointer), 'external');
+        cbPointer -= c;
+      } else if (op === '-') {
+        // Remove range.
+        editor.replaceRange('', editor.posFromIndex(contentPointer - c), 
+          editor.posFromIndex(contentPointer), 'external');
+        contentPointer -= c;
+      } else {
+        // Leave chars unchanged.
+        contentPointer -= c;
+      }
+    }
+  });
+};
+
+setPadContent = function(content) {
+  editor.setValue(content);
+};
+
+getAbsoluteOffset = function(position) {
+  var offset = 0;
+  for (var i = 0; i < position['line']; ++i) {
+    offset = offset + editor.getLine(i).length + 1;
+  }
+  offset = offset + position['ch'];
+  return offset;
+};
+
+getTextLength = function() {
+  return editor.getValue('').length;
+};
+
+getTextRange = function(from, to) {
+  return editor.getRange(from, to, '');
 }
