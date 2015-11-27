@@ -7,10 +7,10 @@ from app import db
 #    db.Column('classroom_id', db.Integer, db.ForeignKey('classroom.id')),
 #)
 
-#user_project = db.Table('user_project',
-#    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-#    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
-#)
+users = db.Table('users',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
+)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,6 +56,12 @@ class Classroom(db.Model):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
+    users = db.relationship('User', secondary=users,
+            backref=db.backref('projects', lazy='dynamic'))
+    pads = db.relationship('Pad', backref='project', lazy='dynamic')
+
+    def __init__(self, title):
+        self.title = title
 
     def __repr__(self):
         return self.title
@@ -63,14 +69,16 @@ class Project(db.Model):
 
 class Pad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(80))
+    filename = db.Column(db.String(80))
     text = db.Column(db.Text)
-    language = db.Column(db.String(20))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+
+    def __init__(self, filename, project):
+        self.filename = filename
+        self.project = project
 
     def __repr__(self):
-        return self.title
-    def __init__(self):
-        self.text = '\n'
+        return self.filename
 
 
 # Class to represent a user revision.
@@ -79,4 +87,3 @@ class Revision:
     def __init__(self, id, changeset):
         self.id = id
         self.changeset = changeset
-

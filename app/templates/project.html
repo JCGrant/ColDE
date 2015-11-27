@@ -71,10 +71,9 @@
       <div class="row">
         <div class="col-md-2">
           <ul class="nav nav-sidebar">
-            <li>index.html</li>
-            <li>index.js</li>
-            <li>style.css</li>
-            <li>app.py</li>
+            {% for pad in project.pads %}
+              <li>{{ pad.filename }}</li>
+            {% endfor %}
           </ul>
         </div>
         <div id="editorview" class="col-md-10">

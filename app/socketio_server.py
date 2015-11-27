@@ -4,11 +4,6 @@ from app import socketio
 from app.models import Pad, User, Revision
 from threading import Lock
 
-
-# Map from socket id to the User object.
-users = {}
-# Initial pad. TODO: handle multiple pads.
-init_pad = Pad()
 # Lock to ensure no more than one client update is processed at a time.
 # TODO(mihai): check if this is fine.
 update_lock = Lock()
@@ -18,14 +13,13 @@ revisions = []
 
 @socketio.on('connect')
 def connect():
-    users[request.sid] = User()
     # Send the user the current content of the pad.
-    send({'type' : 'initial', 'content' : init_pad.text}, room=request.sid)
+    send({'type' : 'initial', 'content' : ''}, room=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():
-    del users[request.sid]
-
+    pass
+    
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
