@@ -1,8 +1,6 @@
-import os
 SECRET_KEY = 'super-secret!'
-
 try:
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    SQLALCHEMY_DATABASE_URI = dj_database_url.config(
 except KeyError:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///../test.db'
 
