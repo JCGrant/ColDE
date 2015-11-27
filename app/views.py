@@ -41,7 +41,7 @@ def login():
         username = form.username.data
         password = form.password.data
         user = User.query.filter_by(username=username).first()
-        if user.check_password(password):
+        if user is not None and user.check_password(password):
             login_user(user, remember=True)
             return redirect(url_for('home'))
     return render_template('login.html',
