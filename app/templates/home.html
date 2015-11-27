@@ -3,6 +3,7 @@
   </head>
   <body>
     <p>Hello {{ user.username }}!</p>
+    <a href="/project/new">Create a new Project</a>
     <h1>Projects</h1>
     <ul>
       {% for project in user.projects.all() %}
