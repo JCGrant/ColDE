@@ -1,4 +1,4 @@
-<h1>Sign In</h1>
+<h1>{{ title }}</h1>
 <form action="" method="post" name="login">
   {{ form.hidden_tag() }}
   <p>
@@ -11,3 +11,7 @@
   </p>
   <p><input type="submit" value="Sign In"></p>
 </form>
+
+{%  if title == 'Sign In' %}
+  <a href='/register'>Register</a>
+{% endif %}

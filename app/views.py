@@ -12,8 +12,8 @@ def load_user(id):
 def before_request():
     g.user = current_user
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
@@ -25,11 +25,27 @@ def login():
             user = User(username=username, password=password)
             db.session.add(user)
             db.session.commit()
+            login_user(user, remember=True)
+            return redirect(url_for('home'))
+    return render_template('login.html',
+                           form=form, title='Register')
+
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if g.user is not None and g.user.is_authenticated:
+        return redirect(url_for('home'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(username=username).first()
         if user.check_password(password):
             login_user(user, remember=True)
             return redirect(url_for('home'))
     return render_template('login.html',
-                           form=form)
+                           form=form, title='Sign In')
 
 @app.route('/logout')
 @login_required
