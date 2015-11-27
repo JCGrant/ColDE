@@ -4,19 +4,52 @@
     <meta charset="UTF-8">
     <title>ColDE</title>
     <link rel="stylesheet" href="/static/css/login.css">  
+    <link rel="stylesheet" href="/static/css/lib/bootstrap.min.css">
 
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
     <script src="/static/js/login.js"></script>
   </head>
   <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">ColDE</a>
+          </div>
+            <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="/login">Login</a></li>
+              <li><a href="/register">Register</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
     <div class="wrapper">
       <div class="container">
-        <h1>ColDE</h1>	
-        <form class="form" action="" method="post" name="login">
+        <h1>{{ title }}</h1>
+        <form action="" method="post" name="login">
           {{ form.hidden_tag() }}
-          {{ form.username(size=50) }}
-          {{ form.password(size=50) }}
-          <button type="submit" id="login-button">Login</button>
+          <p>
+            Please enter your Username:<br>
+            {{ form.username(size=50) }}<br>
+          </p>
+          <p>
+            Please enter your Password:<br>
+            {{ form.password(size=50) }}<br>
+          </p>
+
+          <p><input type="submit" value="{{title}}"></p>
+
+          {%  if title == 'Sign In' %}
+            <p>Don't have and account? <a href="/register">Register</a></p> 
+          {% endif %}
+
         </form>
       </div>
       <ul class="bg-bubbles">
@@ -34,3 +67,4 @@
     </div>
   </body>
 </html>
+
