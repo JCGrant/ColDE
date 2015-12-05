@@ -2,7 +2,8 @@ function runJScode() {
     var mypre = document.getElementById("output"); 
     mypre.innerHTML = "";
     takeOverConsole(mypre);
-    var js = editor.getValue();
+    var jsNotPreProc = editor.getValue();
+    var js = preprocess(jsNotPreProc, 1);
     var s = document.createElement('script');
     s.textContent = js; 
     document.body.appendChild(s);
@@ -10,11 +11,13 @@ function runJScode() {
 }
 
 editor.on('change', function runHTML() {
-    var web = editor.getValue();
+    var webb = editor.getValue();
     var myPre = document.getElementById("webview");
+
     if(myPre == null) {
       return;
     }
+    var web = preprocess(webb, 1);
     myPre.src = "data:text/html;charset=utf-8," + escape(web);
 });
 
@@ -83,7 +86,6 @@ function showConsole() {
     var frame = document.createElement("iframe");
     frame.className = "col-md-5";
     frame.scrolling = "yes";
-    frame.sandbox = "";
     frame.id = "webview";
     frameview.appendChild(frame);
   }
@@ -98,6 +100,45 @@ function closeConsole() {
     editorview.className = "col-md-10";
   }
 } 
+
+function preprocess(text, type) {
+  if(type === 1) {
+    var regex = new RegExp('<[\\s|\\t]*script.*src[\\s|\\t]*=[^>]*>', 'gi');
+    var regex2 = new RegExp('<[\\s|\\t]*link.*rel[\\s|\\t]*=[\\s|\\t]*"stylesheet"[^>]*>', 'gi');
+    var res;
+    while((res = regex.exec(text)) !== null) {
+      var filename = /src[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0])
+      filename = filename[0].split(/[\'|\"]/);
+      filename = filename[1];
+      var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
+      indexToAdd = res.index + res[0].length;
+      var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
+      text = text.replace(res[0], toReplace);
+    } 
+    while((res = regex2.exec(text)) !== null) {
+      var filename = /href[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0])
+      filename = filename[0].split(/[\'|\"]/);
+      filename = filename[1];
+      var toReplace = res[0].replace(/rel[\s|\t]*=[\s|\t]"stilesheet"/gi, '');
+      toReplace = toReplace.replace(/href[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
+      toReplace = toReplace.replace('link', 'style');
+      indexToAdd = res.index + res[0].length;
+      var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
+      text = text.replace(res[0], toReplace);
+    } 
+  return text;
+  } else {
+    //TODO : python imports :( 
+  }
+}
+
+function findPad(text) {
+  for (i = 0; i < pads.length; i++) {
+    if(pads[i].filename === text) {
+      return pads[i].text;
+    }
+  }
+}
 
 $("#clickSkulpt").click(runit);
 $("#clickJs").click(runJScode);
