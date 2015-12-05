@@ -87,7 +87,7 @@
             pads.push({
                 'id': {{ pad.id }},
                 'filename': '{{ pad.filename }}',
-                'text':  `{{ pad.text }}`,
+                'text':  `{{ pad.text|safe }}`,
             });
         {% endfor %}
     </script>
