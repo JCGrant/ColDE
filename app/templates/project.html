@@ -79,6 +79,16 @@
       </div>
     </div>
     <script>var projectId = {{ project.id }}</script>
+    <script>
+        var pads = [];
+        {% for pad in project.pads %}
+            pads.push({
+                'id': {{ pad.id }},
+                'filename': '{{ pad.filename }}',
+                'text':  `{{ pad.text }}`,
+            })
+        {% endfor %}
+    </script>
     <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/bootstrap.min.js"></script>
     <script src="/static/js/lib/socket.io.js"></script>
