@@ -76,6 +76,7 @@ class Pad(db.Model):
     def __init__(self, filename, project):
         self.filename = filename
         self.project = project
+        self.text = ''
 
     def __repr__(self):
         return self.filename
