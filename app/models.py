@@ -73,10 +73,10 @@ class Pad(db.Model):
     text = db.Column(db.Text)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
-    def __init__(self, filename, project):
+    def __init__(self, filename, project_id):
         self.filename = filename
-        self.project = project
         self.text = ''
+        self.project_id = project_id
 
     def __repr__(self):
         return self.filename
