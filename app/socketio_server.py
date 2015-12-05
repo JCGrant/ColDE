@@ -1,5 +1,5 @@
 from flask import request
-from flask_socketio import send, emit
+from flask_socketio import send, emit, join_room, leave_room
 from app import socketio
 from app.models import Pad, User, Revision
 from threading import Lock
@@ -11,15 +11,14 @@ update_lock = Lock()
 # file is loaded from the database (revisions are not persistent).
 revisions = []
 
-@socketio.on('connect')
-def connect():
-    # Send the user the current content of the pad.
-    send({'type' : 'initial', 'content' : ''}, room=request.sid)
+@socketio.on('clientConnect')
+def clientConnect(projectId):
+    join_room(projectId)
 
-@socketio.on('disconnect')
-def disconnect():
-    pass
-    
+@socketio.on('clientDisconnect')
+def clientDisconnect(projectId):
+    leave_room(projectId)
+
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))

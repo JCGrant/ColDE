@@ -5,6 +5,7 @@ var userId;
 
 socket.on('connect', function() {
   userId = socket.io.engine.id;
+  socket.emit('clientConnect', projectId);
 });
 
 // Function to be called to process a changeset.
