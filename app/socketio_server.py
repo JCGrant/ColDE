@@ -37,7 +37,7 @@ def handle(changeset):
         # Create new revision out of this changeset.
         revisions.append(Revision(next_revision, changeset))
         # Broadcast to all clients.
-        emit('server_client_changeset', changeset, broadcast=True)
+        emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
     emit('server_client_ack', '', room=request.sid)
 
