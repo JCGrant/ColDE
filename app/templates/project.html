@@ -69,7 +69,8 @@
           </ul>
         </div>
         <div id="editorview" class="col-md-10">
-          <textarea id="editorArea"></textarea>
+          <div id="editorAreas"></div>
+          <!-- <textarea id="editorArea"></textarea> -->
           <pre id="output" ></pre> 
           <div id="mycanvas" ></div>
         </div>
@@ -89,16 +90,6 @@
                 'text':  `{{ pad.text }}`,
             });
         {% endfor %}
-
-        function getPad(id) {
-            for (var i=0; i<pads.length; i++) {
-                var p = pads[i];
-                if (p.id === id) {
-                    return p;
-                }
-            }
-            return null;
-        }
     </script>
     <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/bootstrap.min.js"></script>

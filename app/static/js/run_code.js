@@ -1,23 +1,13 @@
 function runJScode() {
-    var mypre = document.getElementById("output"); 
+    var mypre = document.getElementById("output");
     mypre.innerHTML = "";
     takeOverConsole(mypre);
-    var js = editor.getValue();
+    var js = padEditor[displayedPad].getValue();
     var s = document.createElement('script');
     s.textContent = js; 
     document.body.appendChild(s);
     restoreConsole();
 }
-
-editor.on('change', function runHTML() {
-    var web = editor.getValue();
-    var myPre = document.getElementById("webview");
-    if(myPre == null) {
-      return;
-    }
-    myPre.src = "data:text/html;charset=utf-8," + escape(web);
-});
-
 
 function takeOverConsole(mypre){
     var console = window.console;

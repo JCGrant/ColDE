@@ -39,7 +39,7 @@ def handle(changeset):
         # Broadcast to all clients.
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
-    emit('server_client_ack', '', room=request.sid)
+    emit('server_client_ack', changeset['padId'], room=request.sid)
 
 ############### Changeset manipulation functions. #################
 

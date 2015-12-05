@@ -1,5 +1,10 @@
+
+/**
+ * Called when the user changes the pad.
+ */
 $('.pad-button').click(function() {
-  var padId = $(this).data('id');
-  var pad = getPad(padId);
-  editor.setValue(pad.text);
+  // Update displayed pad id.
+  newDisplayedPad = $(this).data('id');
+  // Update the editor content.
+  updateDisplayedPad(newDisplayedPad);
 });

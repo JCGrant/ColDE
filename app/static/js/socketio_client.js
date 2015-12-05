@@ -23,6 +23,8 @@ var getTextRange;
 var prevLen;
 /// Mapping from pad id to pad object.
 var padById = {};
+/// Id of pad that is currently displayed.
+var displayedPad = -1;
 
 // Init pad list.
 for (var i = 0; i < pads.length; ++i) {
@@ -38,11 +40,6 @@ for (var i = 0; i < pads.length; ++i) {
   pads[i].baseRev = 0;
   // Add the current pad in the mapping by id.
   padById[pads[i].id] = pads[i];
-}
-// Display the first pad on project loading.
-if (pads.length > 0) {
-  setPadContent(pads[0].text);
-  displayedPad = pads[0].id;
 }
 
 socket.on('server_client_changeset', function(cs) {
@@ -69,11 +66,9 @@ socket.on('server_client_changeset', function(cs) {
   pad.csA = nextA;
   pad.csX = nextX;
   pad.csY = nextY;
-  if (pad.id === displayedPad) {
-    // Apply D changeset on current code mirror view only if the updated pad
-    // is the one we display.
-    processExternalChangeset(D);
-  }
+  // Apply D changeset on current code mirror view even if the updated pad
+  // is not the one we display.
+  processExternalChangeset(cs['padId'], D);
   // Update base changeset.
   pad.baseRev = cs['baseRev'];
 });
@@ -83,7 +78,7 @@ socket.on('server_client_ack', function(padId) {
   // TODO(mihai): update editor content.
   // Update changesets.
   var pad = padById[padId];
-  pad.csA = pad.csA.applyChangeset(csX);
+  pad.csA = pad.csA.applyChangeset(pad.csX);
   pad.csX = new Changeset(pad.csA.newLen);
 })
 
@@ -105,10 +100,11 @@ if (typeof(sender) == 'undefined') {
  * Updates the prev length of the text.
  */
 var onBeforeChange = function(changeset) {
-  prevLen = getTextLength();
-  changeset['removed'] = [getTextRange(changeset['from'], changeset['to'])];
+  prevLen = getTextLength(displayedPad);
+  changeset['removed'] 
+    = [getTextRange(displayedPad, changeset['from'], changeset['to'])];
   newCs = new Changeset(prevLen).fromCodeMirror(
-      changeset, getAbsoluteOffset(changeset['from']));
+      changeset, getAbsoluteOffset(displayedPad, changeset['from']));
   // Merge changeset with csY.
   var pad = padById[displayedPad];
   pad.csY = pad.csY.applyChangeset(newCs);
@@ -133,16 +129,16 @@ var maybeSend = function() {
     // We mush have received ACK for the last submitted changelist,
     // and local changes have to exist.
     if (!pads[i].csX.isIdentity() || pads[i].csY.isIdentity()) {
-      return;
+      continue;
     }
     // Send.
-    pads[i].csY['baseRev'] = baseRev;
+    pads[i].csY['baseRev'] = pads[i].baseRev;
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
     socket.emit('client_server_changeset', pads[i].csY);
     // Update changesets.
     pads[i].csX = pads[i].csY;
-    pads[i].csY = new Changeset(getTextLength());
+    pads[i].csY = new Changeset(getTextLength(pads[i].id));
   }
 
   lastSent = t;
