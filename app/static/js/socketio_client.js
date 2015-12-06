@@ -80,7 +80,7 @@ socket.on('server_client_ack', function(padId) {
   var pad = padById[padId];
   pad.csA = pad.csA.applyChangeset(pad.csX);
   pad.csX = new Changeset(pad.csA.newLen);
-})
+});
 
 /**
  * Called by CodeMirror when a new local changeset is available.
@@ -152,9 +152,32 @@ if (typeof(sender) == 'undefined') {
   sender = new Worker('countdown.js');
 }
 
+// Number of intervals, when we have to send the server full pads.
+var FULL_SEND_INTERVAL = 10;
+var untilFullSend = FULL_SEND_INTERVAL;
+
 /**
  * Called every 500ms.
  */
 tick = function() {
   maybeSend();
+  // Decrease untilFullSend and send if necessary.
+  // TODO(mihai): this code should not be here.
+  --untilFullSend;
+  if (untilFullSend == 0) {
+    untilFullSend = FULL_SEND_INTERVAL;
+    socket.emit('client_server_pads_retrieval', getAllPads());
+  }
+}
+
+/**
+ * Builds a dictionary containing the contents of all pads existing in client.
+ */
+var getAllPads = function() {
+  var allPads = {};
+  for (padId in padEditor) {
+    allPads[padId] = padEditor[padId].getValue("");
+  }
+  allPads['projectId'] = projectId
+  return allPads;
 }

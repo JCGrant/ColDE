@@ -1,6 +1,6 @@
-from flask import request
+from flask import request, copy_current_request_context
 from flask_socketio import send, emit, join_room, leave_room
-from app import socketio
+from app import socketio, db
 from app.models import Pad, User, Revision
 from threading import Lock
 
@@ -10,13 +10,24 @@ update_lock = Lock()
 # List of revisions for the current file. It should be empty each time the
 # file is loaded from the database (revisions are not persistent).
 revisions = []
+# List of users connected to each project.
+projectUsers = {}
 
 @socketio.on('clientConnect')
 def clientConnect(projectId):
+    # Add current user to his project.
+    if projectId in projectUsers:
+        projectUsers[projectId].append(request.sid)
+    else:
+        projectUsers[projectId] = [request.sid]
     join_room(projectId)
 
 @socketio.on('clientDisconnect')
 def clientDisconnect(projectId):
+    # Remove user from dictionary and room.
+    projectUsers[projectId].remove(request.sid)
+    if not projectUsers[projectId]:
+        del projectUsers[projectId]
     leave_room(projectId)
 
 @socketio.on('client_server_changeset')
@@ -40,6 +51,19 @@ def handle(changeset):
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
+
+@socketio.on('client_server_pads_retrieval')
+def clientPadsHandler(pads):
+    updateDBPads(pads)
+
+# Updates the entries in the DB according to this info.
+def updateDBPads(pads):
+    projectPads = Pad.query.filter_by(project_id=pads['projectId']).all()
+    for pad in projectPads:
+        pad.text = pads[str(pad.id)]
+        db.session.add(pad)
+        print (pad.text)
+    db.session.commit()
 
 ############### Changeset manipulation functions. #################
 
