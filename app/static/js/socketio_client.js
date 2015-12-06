@@ -5,8 +5,14 @@ var userId;
 
 socket.on('connect', function() {
   userId = socket.io.engine.id;
+  // Announce server of client connect on projectId.
   socket.emit('clientConnect', projectId);
 });
+
+$(window).on("beforeunload", function() {
+  // Announce server of disconnection, and include current pads state.
+  socket.emit('clientDisconnect', getAllPads());
+})
 
 // Function to be called to process a changeset.
 var processExternalChangeset;

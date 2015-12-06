@@ -23,12 +23,16 @@ def clientConnect(projectId):
     join_room(projectId)
 
 @socketio.on('clientDisconnect')
-def clientDisconnect(projectId):
+def clientDisconnect(pads):
+    print ("serverDisonnect")
+    projectId = pads['projectId']
     # Remove user from dictionary and room.
     projectUsers[projectId].remove(request.sid)
     if not projectUsers[projectId]:
         del projectUsers[projectId]
     leave_room(projectId)
+    # Write state in db.
+    updateDBPads(pads)
 
 @socketio.on('client_server_changeset')
 def handle(changeset):
