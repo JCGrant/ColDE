@@ -112,6 +112,8 @@ function preprocess(text, type) {
       filename = filename[1];
       var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
       indexToAdd = res.index + res[0].length;
+      if (findPad(filename) == null)
+        continue;
       var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
@@ -123,6 +125,8 @@ function preprocess(text, type) {
       toReplace = toReplace.replace(/href[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
       toReplace = toReplace.replace('link', 'style');
       indexToAdd = res.index + res[0].length;
+      if (findPad(filename) == null)
+        continue;
       var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 

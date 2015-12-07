@@ -82,115 +82,115 @@ def applyChangeset(pad, changeset):
     print (pad.text)
 
 
-def follow(this, otherCs):
-    assert this['baseLen'] == otherCs['baseLen']
-    print (str(this))
-    print (str(otherCs))
-    # Initialise the resulting cs.
-    resultCs = {}
-    resultCs['ops'] = []
-    resultCs['charBank'] = ''
-    resultCs['baseLen'] = this['newLen']
-    # Init needed pointers.
-    p1 = 0 
-    p2 = 0
-    left = 0
+# def follow(this, otherCs):
+#     assert this['baseLen'] == otherCs['baseLen']
+#     print (str(this))
+#     print (str(otherCs))
+#     # Initialise the resulting cs.
+#     resultCs = {}
+#     resultCs['ops'] = []
+#     resultCs['charBank'] = ''
+#     resultCs['baseLen'] = this['newLen']
+#     # Init needed pointers.
+#     p1 = 0 
+#     p2 = 0
+#     left = 0
     
-    cbPointer1 = 0 
-    cbPointer2 = 0
+#     cbPointer1 = 0 
+#     cbPointer2 = 0
     
-    endp1 = - 1 
-    endp2 = - 1
+#     endp1 = - 1 
+#     endp2 = - 1
     
-    if this.ops[0][0] != '+':
-        endp1 += this.ops[0][1]
-    if otherCs.ops[0][0] != '+':
-        endp2 += otherCs.ops[0][1]
-    # Add infinite length sentinels, to avoid some particular cases.
-    this.ops.append(['', infinity])
-    otherCs.ops.append(['', infinity])
-    # Perform the merge.
-    while p1 < len(this.ops) - 1 or p2 < len(otherCs.ops) - 1: 
-        # Two pluses => keep insertions in A, add insertions from B.
-        # Priority has the lexicographically lower change.
-        if this.ops[p1][0] == '+' and otherCs.ops[p2][0] == '+': 
-            # Compare charbank substrings to be added here.
-            cbss1 = this.charBank[cbPointer1:cbPointer1 + this.ops[p1][1]]
-            cbss2 = otherCs.charBank[cbPointer2:cbPointer2 + otherCs.ops[p2][1]]
-            # Prioritise the lower one.
-            if cbss1 <= cbss2: 
-               resultCs.ops.append(['=', this.ops[p1][1]])
-               resultCs.ops.append(['+', otherCs.ops[p2][1]])
-            else :
-               resultCs.ops.append(['+', otherCs.ops[p2][1]])
-               resultCs.ops.append(['=', this.ops[p1][1]])
-            #  Update pointers.
-            cbPointer1 += this.ops[p1][1]
-            cbPointer2 += otherCs.ops[p2][1]
-            ++p1
-            endp1 += this.ops[p1][1]
-            ++p2
-            endp2 += otherCs.ops[p2][1]
-        elif this.ops[p1][0] == '+':
-            # Additions in A become retained chars.
-            resultCs.ops.append(['=', this.ops[p1][1]])
-            cbPointer1 += this.ops[p1][1]
-            #  Update pointer.
-            ++p1
-            endp1 += this.ops[p1][1]
-        elif otherCs.ops[p2][0] == '+':
-            # Additions in B become additions in B.
-            resultCs.ops.append(otherCs.ops[p2])
-            cbPointer2 += otherCs.ops[p2][1]
-            ++p2
-            endp2 += otherCs.ops[p2][1]
-        # Check whether afrer processing +'s we must stop.
-        if p1 >= len(this.ops) - 1 and p2 >= len(otherCs.ops) -1:
-            break
-        # Compute the right of the current segment.
-        right = min(endp1, endp2);
-        if  this.ops[p1][0] == '=':
-            resultCs.ops.push([otherCs.ops[p2][0], right - left + 1])
-        # Increment the pointers that no longer have elements.
-        if endp1 == right 
-            ++p1
-            if this.ops[p1][0] != '+':
-                endp1 += this.ops[p1][1]
-        if endp2 == right:
-            ++p2;
-            if (otherCs.ops[p2][0] != '+') {
-                endp2 += otherCs.ops[p2][1];
-        left = right + 1;
-    # Remove infinite length elements.
-    this.ops.pop();
-    otherCs.ops.pop();
+#     if this.ops[0][0] != '+':
+#         endp1 += this.ops[0][1]
+#     if otherCs.ops[0][0] != '+':
+#         endp2 += otherCs.ops[0][1]
+#     # Add infinite length sentinels, to avoid some particular cases.
+#     this.ops.append(['', infinity])
+#     otherCs.ops.append(['', infinity])
+#     # Perform the merge.
+#     while p1 < len(this.ops) - 1 or p2 < len(otherCs.ops) - 1: 
+#         # Two pluses => keep insertions in A, add insertions from B.
+#         # Priority has the lexicographically lower change.
+#         if this.ops[p1][0] == '+' and otherCs.ops[p2][0] == '+': 
+#             # Compare charbank substrings to be added here.
+#             cbss1 = this.charBank[cbPointer1:cbPointer1 + this.ops[p1][1]]
+#             cbss2 = otherCs.charBank[cbPointer2:cbPointer2 + otherCs.ops[p2][1]]
+#             # Prioritise the lower one.
+#             if cbss1 <= cbss2: 
+#                resultCs.ops.append(['=', this.ops[p1][1]])
+#                resultCs.ops.append(['+', otherCs.ops[p2][1]])
+#             else :
+#                resultCs.ops.append(['+', otherCs.ops[p2][1]])
+#                resultCs.ops.append(['=', this.ops[p1][1]])
+#             #  Update pointers.
+#             cbPointer1 += this.ops[p1][1]
+#             cbPointer2 += otherCs.ops[p2][1]
+#             ++p1
+#             endp1 += this.ops[p1][1]
+#             ++p2
+#             endp2 += otherCs.ops[p2][1]
+#         elif this.ops[p1][0] == '+':
+#             # Additions in A become retained chars.
+#             resultCs.ops.append(['=', this.ops[p1][1]])
+#             cbPointer1 += this.ops[p1][1]
+#             #  Update pointer.
+#             ++p1
+#             endp1 += this.ops[p1][1]
+#         elif otherCs.ops[p2][0] == '+':
+#             # Additions in B become additions in B.
+#             resultCs.ops.append(otherCs.ops[p2])
+#             cbPointer2 += otherCs.ops[p2][1]
+#             ++p2
+#             endp2 += otherCs.ops[p2][1]
+#         # Check whether afrer processing +'s we must stop.
+#         if p1 >= len(this.ops) - 1 and p2 >= len(otherCs.ops) -1:
+#             break
+#         # Compute the right of the current segment.
+#         right = min(endp1, endp2);
+#         if  this.ops[p1][0] == '=':
+#             resultCs.ops.push([otherCs.ops[p2][0], right - left + 1])
+#         # Increment the pointers that no longer have elements.
+#         if endp1 == right 
+#             ++p1
+#             if this.ops[p1][0] != '+':
+#                 endp1 += this.ops[p1][1]
+#         if endp2 == right:
+#             ++p2;
+#             if (otherCs.ops[p2][0] != '+') {
+#                 endp2 += otherCs.ops[p2][1];
+#         left = right + 1;
+#     # Remove infinite length elements.
+#     this.ops.pop();
+#     otherCs.ops.pop();
 
-    resultCs.charBank = otherCs.charBank;
-    # Compress the resulting changeset.
-    resultCs.compress();
-    # Compute the new len of the changeset.
-    resultCs.newLen = 0;
-    for i = 0; i < len(resultCs.ops); ++i:
-        if resultCs.ops[i][0] == '=' and resultCs.ops[i][0] == '+':
-            resultCs.newLen += resultCs.ops[i][1];
-    return resultCs;
+#     resultCs.charBank = otherCs.charBank;
+#     # Compress the resulting changeset.
+#     resultCs.compress();
+#     # Compute the new len of the changeset.
+#     resultCs.newLen = 0;
+#     for i = 0; i < len(resultCs.ops); ++i:
+#         if resultCs.ops[i][0] == '=' and resultCs.ops[i][0] == '+':
+#             resultCs.newLen += resultCs.ops[i][1];
+#     return resultCs;
 
 
     
 
-def compress(changeset):
-    # Array of compressed ops.
-    var compressedOps = [];
-    for var i = 0; i < this.ops.length; ++i:
-        # Compute maximal segment with the same operation.
-        var j = i, sum = 0;
-        while (j < len(this.ops) and this.ops[j][0] == this.ops[i][0]:
-            sum += this.ops[j][1];
-            ++j;
-        compressedOps.append([this.ops[i][0], sum]);
-        i = j - 1;
+# def compress(changeset):
+#     # Array of compressed ops.
+#     var compressedOps = [];
+#     for var i = 0; i < this.ops.length; ++i:
+#         # Compute maximal segment with the same operation.
+#         var j = i, sum = 0;
+#         while (j < len(this.ops) and this.ops[j][0] == this.ops[i][0]:
+#             sum += this.ops[j][1];
+#             ++j;
+#         compressedOps.append([this.ops[i][0], sum]);
+#         i = j - 1;
 
-    if len(compressedOps) == 0 :
-        compressedOps = [['=', this.baseLen]];
-    # Use the compressed ops, instead of the initial ones.
-    this.ops = compressedOps;
+#     if len(compressedOps) == 0 :
+#         compressedOps = [['=', this.baseLen]];
+#     # Use the compressed ops, instead of the initial ones.
+#     this.ops = compressedOps;
