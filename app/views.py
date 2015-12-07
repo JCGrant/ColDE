@@ -12,7 +12,7 @@ def load_user(id):
 def before_request():
     g.user = current_user
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('home'))
@@ -32,7 +32,7 @@ def register():
 
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
     if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('home'))
@@ -47,7 +47,7 @@ def login():
     return render_template('login.html',
                            form=form, title='Sign In')
 
-@app.route('/logout')
+@app.route('/logout/')
 @login_required
 def logout():
     logout_user()
@@ -58,7 +58,7 @@ def logout():
 def home():
     return render_template('home.html', user=g.user)
 
-@app.route('/project/new', methods=['GET'])
+@app.route('/project/new/', methods=['GET'])
 @login_required
 def new_project():
     title = request.args.get('title', 'New Project')
@@ -68,7 +68,7 @@ def new_project():
     db.session.commit()
     return redirect(url_for('project', id=project.id))
 
-@app.route('/project/<int:id>')
+@app.route('/project/<int:id>/')
 @login_required
 def project(id):
     project = Project.query.get(id)
@@ -76,7 +76,7 @@ def project(id):
         return redirect(url_for('home'))
     return render_template('project.html', project=project)
 
-@app.route('/pad/new', methods=['GET'])
+@app.route('/pad/new/', methods=['GET'])
 @login_required
 def new_pad():
     filename = request.args.get('filename', 'new_file')
