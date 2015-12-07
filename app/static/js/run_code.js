@@ -48,7 +48,7 @@ function builtinRead(x) {
 }
 
 function runit() {
-   var prog = editor.getValue();  
+   var prog = padEditor[displayedPad].getValue();  
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
