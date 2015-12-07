@@ -1,25 +1,80 @@
-var editorArea = document.getElementById('editorArea');
+var editorAreas = document.getElementById('editorAreas');
 
-var editor = CodeMirror.fromTextArea(editorArea, {
-  lineNumbers: true,
-  mode: {name: "javascript", globalVars: true},
-  keyMap: "sublime",
-  autoCloseBrackets: true,
-  matchBrackets: true,
-  showCursorWhenSelecting: true,
-  theme: 'monokai',
-  foldGutter: true,
-  gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-  tabSize: 2
-});
+/// Maps pad id to pad text area.
+var padTextArea = {};
+/// Maps pad id to pad editor.
+var padEditor = {};
+// Create code mirror instances for all pads.
+// TODO(mihai): remove this dependency.
+for (var i = 0; i < pads.length; ++i) {
+  // Create holder text area.
+  var textArea = document.createElement('textarea');
+  editorAreas.appendChild(textArea);
+  padTextArea[pads[i].id] = textArea;
+  // Create the editor instance.
+  var editor = CodeMirror.fromTextArea(textArea, {
+    lineNumbers: true,
+    mode: {name: "javascript", globalVars: true},
+    keyMap: "sublime",
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    showCursorWhenSelecting: true,
+    theme: 'monokai',
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    tabSize: 2
+  });
+  textArea.nextSibling.style.display = 'none';
+  // Configuration.
+  editor.setOption('extraKeys', {
+    Tab: function(cm) {
+      var spaces = '    ';
+      cm.replaceSelection(spaces);
+    },
+    "Ctrl-Space": "autocomplete"
+  });
+  // Run HTML function.
+  editor.on('change', function runHTML() {
+    var web = editor.getValue();
+    var myPre = document.getElementById("webview");
+    if(myPre == null) {
+      return;
+    }
+    myPre.src = "data:text/html;charset=utf-8," + escape(web);
+  });
+  // Functions managing interaction with the socketio_client.
+  blockedOrigins = ['external', 'setValue']
+  editor.on('beforeChange', function(instance, changeset) {
+    // Do not propagate the update if it was from a different client.
+    if (changeset.hasOwnProperty('origin')
+        && blockedOrigins.indexOf(changeset['origin']) >= 0) {
+        return;
+    }
+    onBeforeChange(changeset);
+  });
+  // Set the content of the created pad.
+  editor.setValue(pads[i].text);
+  // Add the editor to the mapping.
+  padEditor[pads[i].id] = editor;
+}
 
-editor.setOption('extraKeys', {
-  Tab: function(cm) {
-    var spaces = '    ';
-    cm.replaceSelection(spaces);
-  },
-  "Ctrl-Space": "autocomplete"
-});
+// Display the initial pad.
+var updateDisplayedPad = function(padId) {
+  // Remove the instance already there, if it exists.
+  if (displayedPad != -1) {
+    padTextArea[displayedPad].nextSibling.style.display = 'none';
+  }
+  padTextArea[padId].nextSibling.offsetHeight;
+  padTextArea[padId].nextSibling.style.display = 'block';
+  padEditor[padId].refresh();
+  // Focus editor.
+  padEditor[padId].focus();
+  displayedPad = padId;
+}
+// Display the first pad on project loading.
+if (pads.length > 0) {
+  updateDisplayedPad(pads[0].id);
+}
 
 function getCompletions(token, context) {
   var found = [], start = token.string;
@@ -145,23 +200,13 @@ function joinLines(cm) {
   });
 }
 
-/*********** Functions managing interaction with the socketio_client *****/
-blockedOrigins = ['external', 'setValue']
-
-editor.on('beforeChange', function(instance, changeset) {
-  // Do not propagate the update if it was from a different client.
-  if (changeset.hasOwnProperty('origin')
-      && blockedOrigins.indexOf(changeset['origin']) >= 0) {
-      return;
-  }
-  
-  onBeforeChange(changeset);
-});
-
 /**
  * Applies changeset to current editor content.
  */
-processExternalChangeset = function(changeset) {
+processExternalChangeset = function(padId, changeset) {
+  // Retrieve the editor instance.
+  console.log(padId);
+  var editor = padEditor[padId];
   var prevContent = editor.getValue("");
   console.assert(
     changeset.baseLen === prevContent.length, "cannot apply change");
@@ -193,11 +238,16 @@ processExternalChangeset = function(changeset) {
   });
 };
 
-setPadContent = function(content) {
+setPadContent = function(padId, content) {
+  // Retrieve the editor instance.
+  var editor = padEditor[padId];
   editor.setValue(content);
 };
 
-getAbsoluteOffset = function(position) {
+getAbsoluteOffset = function(padId, position) {
+  // Retrieve the editor instance.
+  var editor = padEditor[padId];
+
   var offset = 0;
   for (var i = 0; i < position['line']; ++i) {
     offset = offset + editor.getLine(i).length + 1;
@@ -206,10 +256,14 @@ getAbsoluteOffset = function(position) {
   return offset;
 };
 
-getTextLength = function() {
+getTextLength = function(padId) {
+  // Retrieve the editor instance.
+  var editor = padEditor[padId];
   return editor.getValue('').length;
 };
 
-getTextRange = function(from, to) {
+getTextRange = function(padId, from, to) {
+  // Retrieve the editor instance.
+  var editor = padEditor[padId];
   return editor.getRange(from, to, '');
 }

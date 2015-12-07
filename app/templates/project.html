@@ -64,12 +64,12 @@
         <div class="col-md-2">
           <ul class="nav nav-sidebar">
             {% for pad in project.pads %}
-              <li>{{ pad.filename }}</li>
+            <li><a class='pad-button' data-id={{pad.id}} href='#'>{{ pad.filename }}</a></li>
             {% endfor %}
           </ul>
         </div>
         <div id="editorview" class="col-md-10">
-          <textarea id="editorArea"></textarea>
+          <div id="editorAreas"></div>
           <pre id="output" ></pre> 
           <div id="mycanvas" ></div>
         </div>
@@ -78,16 +78,17 @@
         </div>
       </div>
     </div>
-    <script>var projectId = {{ project.id }}</script>
-      <script>
+    <script>
+        var projectId = {{ project.id }};
+        
         var pads = [];
         {% for pad in project.pads %}
-        pads.push({
-        'id': {{ pad.id }},
-        'filename': '{{ pad.filename }}',
-        'text':  `{{ pad.text }}`,
-        })
-      {% endfor %}
+            pads.push({
+                'id': {{ pad.id }},
+                'filename': '{{ pad.filename }}',
+                'text':  `{{ pad.text|safe }}`,
+            });
+        {% endfor %}
     </script>
     <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/bootstrap.min.js"></script>
@@ -97,5 +98,6 @@
     <script src="/static/js/socketio_client.js"></script>
     <script src="/static/js/codemirror.js"></script>
     <script src="/static/js/run_code.js"></script>
+    <script src="/static/js/editor_events.js"></script>
   </body>
 </html>

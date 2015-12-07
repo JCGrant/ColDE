@@ -76,15 +76,14 @@ def project(id):
         return redirect(url_for('home'))
     return render_template('project.html', project=project)
 
-@app.route('/pad/new/', methods=['GET'])
+@app.route('/project/<int:id>/pad/new', methods=['GET'])
 @login_required
-def new_pad():
+def new_pad(id):
     filename = request.args.get('filename', 'new_file')
-    project_id = request.args.get('project_id', '')
-    project = Project.query.get(int(project_id))
+    project = Project.query.get(id)
     if project is None:
         return redirect(url_for('home'))
-    pad = Pad(filename, project)
+    pad = Pad(filename, id)
     db.session.add(pad)
     db.session.commit()
-    return redirect(url_for('project', id=project.id)) 
+    return redirect(url_for('project', id=id)) 
