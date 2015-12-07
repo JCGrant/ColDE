@@ -1,3 +1,10 @@
+import os
 SECRET_KEY = 'super-secret!'
-SQLALCHEMY_DATABASE_URI = 'sqlite:///../test.db'
+
+if os.environ.get('HEROKU'):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+else:
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///../test.db'
+
 SQLALCHEMY_TRACK_MODIFICATIONS = True
+DEBUG = True
