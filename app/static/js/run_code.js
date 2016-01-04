@@ -96,27 +96,25 @@ function preprocess(text, type) {
     var regex2 = new RegExp('<[\\s|\\t]*link.*rel[\\s|\\t]*=[\\s|\\t]*"stylesheet"[^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
-      var filename = /src[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0]);
+      var filename = /src[\s|\t]*=[\s|\t]*"[^"]*"/gi.exec(res[0]);
       if (filename == null) {
         continue;
       }
       filename = filename[0].split(/[\'|\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
+      var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]*"[^"]*"/gi, '');
       indexToAdd = res.index + res[0].length;
-      console.log(filename);
-      console.log(indexToAdd);
       if (findPad(filename) == null)
         continue;
       var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
     while((res = regex2.exec(text)) !== null) {
-      var filename = /href[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0])
+      var filename = /href[\s|\t]*=[\s|\t]*"[^"]*"/gi.exec(res[0])
       filename = filename[0].split(/[\'|\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/rel[\s|\t]*=[\s|\t]"stilesheet"/gi, '');
-      toReplace = toReplace.replace(/href[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
+      var toReplace = res[0].replace(/rel[\s|\t]*=[\s|\t]*"stilesheet"/gi, '');
+      toReplace = toReplace.replace(/href[\s|\t]*=[\s|\t]*"[^"]*"/gi, '');
       toReplace = toReplace.replace('link', 'style');
       indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
