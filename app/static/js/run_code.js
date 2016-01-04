@@ -48,7 +48,7 @@ function builtinRead(x) {
 }
 
 function runit() {
-   var prog = editor.getValue();  
+   var prog = padEditor[displayedPad].getValue();  
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
@@ -73,7 +73,7 @@ function showConsole() {
     var frame = document.createElement("iframe");
     frame.className = "col-md-5";
     frame.scrolling = "yes";
-    frame.sandbox = "";
+    frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
     frame.id = "webview";
     frameview.appendChild(frame);
   }
