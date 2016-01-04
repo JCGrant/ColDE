@@ -1,8 +1,9 @@
+
 function runJScode() {
     var mypre = document.getElementById("output");
     mypre.innerHTML = "";
     takeOverConsole(mypre);
-    var js = padEditor[displayedPad].getValue();
+    var js = preprocess(padEditor[displayedPad].getValue(), 1);
     var s = document.createElement('script');
     s.textContent = js; 
     document.body.appendChild(s);
@@ -73,7 +74,7 @@ function showConsole() {
     var frame = document.createElement("iframe");
     frame.className = "col-md-5";
     frame.scrolling = "yes";
-    frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
+    // frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
     frame.id = "webview";
     frameview.appendChild(frame);
   }
@@ -95,11 +96,16 @@ function preprocess(text, type) {
     var regex2 = new RegExp('<[\\s|\\t]*link.*rel[\\s|\\t]*=[\\s|\\t]*"stylesheet"[^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
-      var filename = /src[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0])
+      var filename = /src[\s|\t]*=[\s|\t]"[^"]*"/gi.exec(res[0]);
+      if (filename == null) {
+        continue;
+      }
       filename = filename[0].split(/[\'|\"]/);
       filename = filename[1];
       var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]"[^"]*"/gi, '');
       indexToAdd = res.index + res[0].length;
+      console.log(filename);
+      console.log(indexToAdd);
       if (findPad(filename) == null)
         continue;
       var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);

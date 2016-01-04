@@ -37,10 +37,13 @@ for (var i = 0; i < pads.length; ++i) {
   editor.on('change', function runHTML() {
     var web = editor.getValue();
     var myPre = document.getElementById("webview");
-    if(myPre == null) {
+    if (typeof(preprocess) == 'undefined') {
       return;
     }
-    myPre.src = "data:text/html;charset=utf-8," + escape(web);
+    web = preprocess(web, 1);
+    if (myPre != null) {
+      myPre.src = "data:text/html;charset=utf-8," + escape(web);
+    }
   });
   // Functions managing interaction with the socketio_client.
   blockedOrigins = ['external', 'setValue']
