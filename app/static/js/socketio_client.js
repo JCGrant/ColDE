@@ -9,11 +9,6 @@ socket.on('connect', function() {
   socket.emit('clientConnect', projectId);
 });
 
-$(window).on("beforeunload", function() {
-  // Announce server of disconnection, and include current pads state.
-  socket.emit('clientDisconnect', getAllPads());
-})
-
 // Function to be called to process a changeset.
 var processExternalChangeset;
 // Function to be called to set the content of the pad.
@@ -158,22 +153,11 @@ if (typeof(sender) == 'undefined') {
   sender = new Worker('countdown.js');
 }
 
-// Number of intervals, when we have to send the server full pads.
-var FULL_SEND_INTERVAL = 10;
-var untilFullSend = FULL_SEND_INTERVAL;
-
 /**
  * Called every 500ms.
  */
 tick = function() {
   maybeSend();
-  // Decrease untilFullSend and send if necessary.
-  // TODO(mihai): this code should not be here.
-  --untilFullSend;
-  if (untilFullSend == 0) {
-    untilFullSend = FULL_SEND_INTERVAL;
-    socket.emit('client_server_pads_retrieval', getAllPads());
-  }
 }
 
 /**
