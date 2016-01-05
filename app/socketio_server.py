@@ -77,11 +77,6 @@ def handle(changeset):
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
 
-@socketio.on('client_server_pads_retrieval')
-def clientPadsHandler(pads):
-    # updateDBPads(pads)
-    pass
-
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset):
     pad = Pad.query.filter_by(project_id=changeset['projectId']).\
@@ -106,11 +101,14 @@ def applyChangeset(text, changeset):
     for i in range(0, len(changeset['ops'])):
         op, c = changeset['ops'][i][0], changeset['ops'][i][1]
         if op == '+':
+            # Get from char bank.
             resultText += changeset['charBank'][cbPointer : (cbPointer + c)]
             cbPointer += c
         elif op == '-':
+            # Skip chars from the initial text.
             textPointer += c
         elif op == '=':
+            # Keep chars from the initial text.
             resultText += text[textPointer : (textPointer + c)]
             textPointer += c
 
