@@ -10,6 +10,8 @@ function runJScode() {
     restoreConsole();
 }
 
+var lines_modified = 0;
+
 function takeOverConsole(mypre){
     var console = window.console;
     if (!console) return;
@@ -47,9 +49,12 @@ function builtinRead(x) {
             throw "File not found: '" + x + "'";
     return Sk.builtinFiles["files"][x];
 }
-
+function getCurrentPad() {
+  return padById[displayedPad].filename;
+}
 function runit() {
-   var prog = preprocess(padEditor[displayedPad].getValue(), 2, ["b"]);   //TODO need to add current file name
+   lines_modified = 0;
+   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()]);   //TODO need to add current file name
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
@@ -62,7 +67,9 @@ function runit() {
        console.log('success');
    },
        function(err) {
-       console.log(err.toString());
+       err.args.v[2] = err.args.v[2] - lines_modified;
+       err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
+       outf(err.toString());
    });
 }
 
@@ -133,10 +140,14 @@ function preprocess(text, type, filelist) {
       indexAfterAdd = indexToAdd + res[0].length;
       if(filelist.indexOf(filename) > -1) {
         var text = text.slice(0, indexToAdd) + "\n" + text.slice(indexAfterAdd);
-        console.log('stop');
+        lines_modified = lines_modified;
       } else {
         filelist.push(filename);
-        var text = text.slice(0, indexToAdd) + "\n" + preprocess(findPad(filename), 2, filelist) + "\n" + text.slice(indexAfterAdd);
+        if (findPad(filename) == null)
+          continue;
+        var to_add =  preprocess(findPad(filename), 2, filelist)
+        lines_modified = count_lines(to_add) + lines_modified;
+        var text = text.slice(0, indexToAdd) + "\n" + to_add + "\n" + text.slice(indexAfterAdd);
       }
       console.log(text);
     }
@@ -144,10 +155,14 @@ function preprocess(text, type, filelist) {
   return text; 
 }
 
+function count_lines(str) {
+  return str.split(/\r\n|\r|\n/).length
+}
+
 function findPad(text) {
   for (i = 0; i < pads.length; i++) {
     if(pads[i].filename === text) {
-      return pads[i].text;
+      return padEditor[pads[i].id].getValue();
     }
   }
 }
