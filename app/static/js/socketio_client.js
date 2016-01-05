@@ -9,6 +9,28 @@ socket.on('connect', function() {
   socket.emit('clientConnect', projectId);
 });
 
+// Intercept window unload and check if there are unsubmitted changes.
+$(window).on("beforeunload", function(e) {
+  e = e || window.event;
+  // Check if there are unsubmitted changes.
+  unsubmitted = false;
+  for (var i = 0; i < pads.length; ++i) {
+    if (!pads[i].csX.isIdentity() || !pads[i].csY.isIdentity()) {
+      unsubmitted = true;
+      break;
+    }
+  }
+  if (!unsubmitted) {
+    return;
+  }
+  // String to be displayed.
+  prompt = 'There are unsubmitted changes that may be lost!';
+  if (e) {
+    e.returnValue = prompt;
+  }
+  return prompt;
+})
+
 // Function to be called to process a changeset.
 var processExternalChangeset;
 // Function to be called to set the content of the pad.
