@@ -4,6 +4,7 @@ from app import socketio, db
 from app.models import Pad, User, Revision
 from threading import Lock
 from math import inf as infinity
+from copy import deepcopy
 
 # Lock to ensure no more than one client update is processed at a time.
 # TODO(mihai): check if this is fine.
@@ -109,9 +110,9 @@ def applyChangeset(pad, changeset):
             startPosition = i
             break
         if pad.text[i] != '\n':
-            crtCol = crtCol + 1;
+            crtCol = crtCol + 1
         else:
-            crtLine = crtLine + 1;
+            crtLine = crtLine + 1
             crtCol = 0
     if startPosition == -1:
         startPosition = len(pad.text)
@@ -138,7 +139,6 @@ def follow(this, otherCs):
     p1, p2, left = 0, 0, 0
     cbPointer1, cbPointer2 = 0, 0
     endp1, endp2 = -1, -1
-    
     if this['ops'][0][0] != '+':
         endp1 += this['ops'][0][1]
     if otherCs['ops'][0][0] != '+':
@@ -185,7 +185,7 @@ def follow(this, otherCs):
         if p1 >= len(this['ops']) - 1 and p2 >= len(otherCs['ops']) -1:
             break
         # Compute the right of the current segment.
-        right = min(endp1, endp2);
+        right = min(endp1, endp2)
         if  this['ops'][p1][0] == '=':
             resultCs['ops'].append([otherCs['ops'][p2][0], right - left + 1])
         # Increment the pointers that no longer have elements.
@@ -197,35 +197,36 @@ def follow(this, otherCs):
             p2 += 1
             if otherCs['ops'][p2][0] != '+':
                 endp2 += otherCs['ops'][p2][1]
-        left = right + 1;
+        left = right + 1
     # Remove infinite length elements.
     this['ops'].pop()
     otherCs['ops'].pop()
 
     resultCs['charBank'] = otherCs['charBank']
     # Compress the resulting changeset.
-    # resultCs.compress();
+    resultCs = compress(resultCs)
     # Compute the new len of the changeset.
     resultCs['newLen'] = 0
     for i in range(0, len(resultCs['ops'])):
         if resultCs['ops'][i][0] == '=' and resultCs['ops'][i][0] == '+':
-            resultCs['newLen'] += resultCs['ops'][i][1];
-    return resultCs;
+            resultCs['newLen'] += resultCs['ops'][i][1]
+    return resultCs
     
+def compress(this):
+    # Initialise the resulting cs.
+    resultCs = deepcopy(this)
+    # Array of compressed ops.
+    compressedOps = []
+    for i in range(0, len(this['ops'])):
+        # Compute maximal segment with the same operation.
+        j, sum = i, 0
+        while j < len(this['ops']) and this['ops'][j][0] == this['ops'][i][0]:
+            sum += this['ops'][j][1]
+            j += 1
+        compressedOps.append([this['ops'][i][0], sum])
+        i = j - 1
 
-# def compress(changeset):
-#     # Array of compressed ops.
-#     var compressedOps = [];
-#     for var i = 0; i < this['ops'].length; ++i:
-#         # Compute maximal segment with the same operation.
-#         var j = i, sum = 0;
-#         while (j < len(this['ops']) and this['ops'][j][0] == this['ops'][i][0]:
-#             sum += this['ops'][j][1];
-#             ++j;
-#         compressedOps.append([this['ops'][i][0], sum]);
-#         i = j - 1;
-
-#     if len(compressedOps) == 0 :
-#         compressedOps = [['=', this.baseLen]];
-#     # Use the compressed ops, instead of the initial ones.
-#     this['ops'] = compressedOps;
+    if len(compressedOps) == 0:
+        compressedOps = [['=', this.baseLen]]
+    # Use the compressed ops, instead of the initial ones.
+    resultCs['ops'] = compressedOps
