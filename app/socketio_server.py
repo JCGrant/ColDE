@@ -68,7 +68,7 @@ def handle(changeset):
             changeset = follow(revs[i].changeset, changeset)
 
         # Create new revision out of this changeset.
-        revisions[projectId][pad_id].append(Revision(next_revision, changeset))
+        revisions[project_id][pad_id].append(Revision(next_revision, changeset))
         # Broadcast to all clients.
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
@@ -88,43 +88,6 @@ def updateDBPads(pads):
     db.session.commit()
 
 ############### Changeset manipulation functions. #################
-
-def combineLines(lines):
-    # Combine an array of lines into a single string.
-    s = ""
-    for i, line in enumerate(lines):
-        if (i != 0):
-            s += '\n'
-        s += line
-    return s
-
-def applyChangeset(pad, changeset):
-
-    startPosition = -1
-    crtLine = crtCol = 0
-    toLine = changeset['from']['line']
-    toCol = changeset['from']['ch']
-    # Compute positions we have to insert text between.
-    for i in range(len(pad.text)):
-        if crtLine == toLine and crtCol == toCol:
-            startPosition = i
-            break
-        if pad.text[i] != '\n':
-            crtCol = crtCol + 1
-        else:
-            crtLine = crtLine + 1
-            crtCol = 0
-    if startPosition == -1:
-        startPosition = len(pad.text)
-    endPosition = startPosition + len(combineLines(changeset['removed'])) - 1
-    listText = list(pad.text)
-    print (listText)
-    print (startPosition)
-    print (endPosition)
-    listText[startPosition : endPosition] = combineLines(changeset['text'])
-    print (listText)
-    pad.text = ''.join(listText)
-    print (pad.text)
 
 def follow(this, otherCs):
     assert this['baseLen'] == otherCs['baseLen']
