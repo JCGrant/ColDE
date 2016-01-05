@@ -3,7 +3,7 @@ function runJScode() {
     var mypre = document.getElementById("output");
     mypre.innerHTML = "";
     takeOverConsole(mypre);
-    var js = preprocess(padEditor[displayedPad].getValue(), 1);
+    var js = padEditor[displayedPad].getValue();
     var s = document.createElement('script');
     s.textContent = js; 
     document.body.appendChild(s);
@@ -49,7 +49,7 @@ function builtinRead(x) {
 }
 
 function runit() {
-   var prog = padEditor[displayedPad].getValue();  
+   var prog = preprocess(padEditor[displayedPad].getValue(), 2, ["b"]);   //TODO need to add current file name
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
@@ -90,7 +90,7 @@ function closeConsole() {
   }
 } 
 
-function preprocess(text, type) {
+function preprocess(text, type, filelist) {
   if(type === 1) {
     var regex = new RegExp('<[\\s|\\t]*script.*src[\\s|\\t]*=[^>]*>', 'gi');
     var regex2 = new RegExp('<[\\s|\\t]*link.*rel[\\s|\\t]*=[\\s|\\t]*"stylesheet"[^>]*>', 'gi');
@@ -122,10 +122,26 @@ function preprocess(text, type) {
       var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
-  return text;
   } else {
-    //TODO : python imports :( 
+    var regex = new RegExp ('import.*[\\n|\\r]', 'gi');
+    //TODO from X import Y;
+    var res;
+    while((res = regex.exec(text)) !== null) {
+      var filename = res[0].slice(6);
+      filename = filename.replace(/\s/g, '');
+      indexToAdd = res.index;
+      indexAfterAdd = indexToAdd + res[0].length;
+      if(filelist.indexOf(filename) > -1) {
+        var text = text.slice(0, indexToAdd) + "\n" + text.slice(indexAfterAdd);
+        console.log('stop');
+      } else {
+        filelist.push(filename);
+        var text = text.slice(0, indexToAdd) + "\n" + preprocess(findPad(filename), 2, filelist) + "\n" + text.slice(indexAfterAdd);
+      }
+      console.log(text);
+    }
   }
+  return text; 
 }
 
 function findPad(text) {
