@@ -67,9 +67,12 @@ function runit() {
        console.log('success');
    },
        function(err) {
-       err.args.v[2] = err.args.v[2] - lines_modified;
-       err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
-       outf(err.toString());
+       if(err.traceback[0]["lineno"] <= lines_modified) {
+         outf("Error in imported files.");
+       } else {
+         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
+         outf(err.toString());
+       }
    });
 }
 
@@ -130,7 +133,7 @@ function preprocess(text, type, filelist) {
       text = text.replace(res[0], toReplace);
     } 
   } else {
-    var regex = new RegExp ('import.*[\\n|\\r]', 'gi');
+    var regex = new RegExp ('.*import.*[\\n|\\r]', 'g');
     //TODO from X import Y;
     var res;
     while((res = regex.exec(text)) !== null) {
@@ -139,17 +142,15 @@ function preprocess(text, type, filelist) {
       indexToAdd = res.index;
       indexAfterAdd = indexToAdd + res[0].length;
       if(filelist.indexOf(filename) > -1) {
-        var text = text.slice(0, indexToAdd) + "\n" + text.slice(indexAfterAdd);
-        lines_modified = lines_modified;
+        var text = preprocess(text.slice(0, indexToAdd) + text.slice(indexAfterAdd), 2, filelist);
       } else {
         filelist.push(filename);
         if (findPad(filename) == null)
           continue;
-        var to_add =  preprocess(findPad(filename), 2, filelist)
-        lines_modified = count_lines(to_add) + lines_modified;
-        var text = text.slice(0, indexToAdd) + "\n" + to_add + "\n" + text.slice(indexAfterAdd);
+        var to_add = preprocess(findPad(filename), 2, filelist)
+        lines_modified = count_lines(to_add) + lines_modified + 1;
+        var text = text.slice(0, indexToAdd) + to_add + "\n" + text.slice(indexAfterAdd);
       }
-      console.log(text);
     }
   }
   return text; 
