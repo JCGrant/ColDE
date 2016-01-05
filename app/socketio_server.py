@@ -84,7 +84,15 @@ def clientPadsHandler(pads):
 
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset):
-    pass
+    pad = Pad.query.filter_by(project_id=changeset['projectId']).\
+        filter_by(id=changeset['padId']).first()
+    if not pad:
+        return
+    # Update pad content.
+    pad.text = applyChangeset(pad.text, changeset)
+    # Write to DB.
+    db.session.add(pad)
+    db.session.commit()
 
 ############### Changeset manipulation functions. #################
 
