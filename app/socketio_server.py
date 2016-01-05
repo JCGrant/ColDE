@@ -69,6 +69,9 @@ def handle(changeset):
 
         # Create new revision out of this changeset.
         revisions[project_id][pad_id].append(Revision(next_revision, changeset))
+        # Update current pad in db.
+        changeset['projectId'], changeset['padId'] = project_id, pad_id
+        updateDBPad(changeset)
         # Broadcast to all clients.
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
@@ -76,18 +79,34 @@ def handle(changeset):
 
 @socketio.on('client_server_pads_retrieval')
 def clientPadsHandler(pads):
-    updateDBPads(pads)
+    # updateDBPads(pads)
+    pass
 
 # Updates the entries in the DB according to this info.
-def updateDBPads(pads):
-    projectPads = Pad.query.filter_by(project_id=pads['projectId']).all()
-    for pad in projectPads:
-        pad.text = pads[str(pad.id)]
-        db.session.add(pad)
-        print (pad.text)
-    db.session.commit()
+def updateDBPad(changeset):
+    pass
 
 ############### Changeset manipulation functions. #################
+
+def applyChangeset(text, changeset):
+    assert len(text) == changeset['baseLen']
+    
+    # Init resulting text and pointers.
+    resultText = ''
+    textPointer, cbPointer = 0, 0
+    # Apply operations.
+    for i in range(0, len(changeset['ops'])):
+        op, c = changeset['ops'][i][0], changeset['ops'][i][1]
+        if op == '+':
+            resultText += changeset['charBank'][cbPointer : (cbPointer + c)]
+            cbPointer += c
+        elif op == '-':
+            textPointer += c
+        elif op == '=':
+            resultText += text[textPointer : (textPointer + c)]
+            textPointer += c
+
+    return resultText
 
 def follow(this, otherCs):
     assert this['baseLen'] == otherCs['baseLen']
@@ -145,7 +164,7 @@ def follow(this, otherCs):
             p2 += 1
             endp2 += otherCs['ops'][p2][1]
         # Check whether afrer processing +'s we must stop.
-        if p1 >= len(this['ops']) - 1 and p2 >= len(otherCs['ops']) -1:
+        if p1 >= len(this['ops']) - 1 and p2 >= len(otherCs['ops']) - 1:
             break
         # Compute the right of the current segment.
         right = min(endp1, endp2)
