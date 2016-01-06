@@ -77,6 +77,12 @@ def handle(changeset):
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
 
+@socketio.on('client_server_comment')
+def onNewComment(comment):
+    # Stamp with the client id & send.
+    comment['clientId'] = request.sid
+    emit('server_client_comment', comment, room=comment['projectId'])
+
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset):
     pad = Pad.query.filter_by(project_id=changeset['projectId']).\

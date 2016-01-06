@@ -20,7 +20,7 @@ var displayComment = function(comment) {
     'line': comment['line'],
     'ch': comment['ch']
   }
-  padById[comment['padId']].setBookmark(position, {'widget' : element});
+  padEditor[comment['padId']].setBookmark(position, {'widget' : element});
 }
 
 /**
@@ -39,6 +39,9 @@ var addComment = function() {
   comment['line'] = cursor['line'];
   comment['ch'] = cursor['ch'];
   comment['padId'] = displayedPad;
+  comment['projectId'] = projectId;
   // Notice the server.
   onCommentAdded(comment);
+  // Display the comment in client, although not ACKed.
+  displayComment(comment);
 }

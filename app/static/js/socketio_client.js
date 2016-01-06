@@ -145,6 +145,9 @@ var onCommentAdded = function(comment) {
  * A comment is received from the server.
  */
 socket.on('server_client_comment', function(comment) {
+  if (comment['clientId'] === userId) {
+    return;
+  }
   displayComment(comment);
 });
 
