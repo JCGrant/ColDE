@@ -82,6 +82,7 @@ class Pad(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    pad_id = db.Column(db.Integer, db.ForeignKey('pad.id'))
     author = db.Column(db.String(50))
     text = db.Column(db.Text)
     pos_line = db.Column(db.Integer)

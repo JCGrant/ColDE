@@ -134,6 +134,21 @@ var onBeforeChange = function(changeset) {
 }
 
 /**
+ * Called when this client creates a new client.
+ * Sends the comment to the server.
+ */
+var onCommentAdded = function(comment) {
+  socket.emit('client_server_comment', comment);
+}
+
+/**
+ * A comment is received from the server.
+ */
+socket.on('server_client_comment', function(comment) {
+  displayComment(comment);
+});
+
+/**
  * Timestamp for the last moment when local changes were submitted to server.
  */
 var lastSent = 0;
