@@ -45,7 +45,6 @@ class User(db.Model):
     def __repr__(self):
         return self.username
 
-
 class Classroom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
@@ -66,12 +65,12 @@ class Project(db.Model):
     def __repr__(self):
         return self.title
 
-
 class Pad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(80))
     text = db.Column(db.Text)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    comments = db.relationship('Comment', backref='pad', lazy='dynamic')
 
     def __init__(self, filename, project_id):
         self.filename = filename
@@ -81,6 +80,20 @@ class Pad(db.Model):
     def __repr__(self):
         return self.filename
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    author = db.Column(db.String(50))
+    text = db.Column(db.Text)
+    pos_line = db.Column(db.Integer)
+    pos_ch = db.Column(db.Integer)
+
+    def __init__(self, author, text):
+        self.author = author
+        self.text = text
+        self.pos_line, self.pos_ch = 0, 0
+
+    def __repr__(self):
+        return self.text
 
 # Class to represent a user revision.
 # TODO(mihai): maybe put it in a separate file. Not really a model (yet).

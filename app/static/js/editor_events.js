@@ -8,3 +8,11 @@ $('.pad-button').click(function() {
   // Update the editor content.
   updateDisplayedPad(newDisplayedPad);
 });
+
+/**
+ * Called when an user wants to add a comment.
+ */
+var addComment = function() {
+
+  
+}

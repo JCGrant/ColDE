@@ -90,11 +90,19 @@
 
         var pads = [];
         {% for pad in project.pads %}
-            
+            var currentComments = [];
+            {% for comment in pad.comments %}
+              currentComments.push({
+                'author': {{ comment.author }},
+                'text': htmlDecode(`{{ comment.text|e }}`),
+                'line': {{ comment.pos_line }},
+                'ch': {{ comment.pos_ch }}
+              });
+            {% endfor %}
             pads.push({
-                'id': {{ pad.id }},
-                'filename': '{{ pad.filename|e }}',
-                'text': htmlDecode(`{{ pad.text|e }}`),
+              'id': {{ pad.id }},
+              'filename': '{{ pad.filename|e }}',
+              'text': htmlDecode(`{{ pad.text|e }}`)
             });
         {% endfor %}
     </script>
