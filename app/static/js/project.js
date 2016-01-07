@@ -41,4 +41,6 @@ function closeConsole() {
     frameview.removeChild(webview);
     editorview.className = "col-md-10";
   }
-} 
+}
+
+$('#newUserSelect').select2();

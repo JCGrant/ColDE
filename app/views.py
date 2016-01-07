@@ -74,7 +74,10 @@ def project(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
-    return render_template('project.html', project=project)
+    users = [u for u in User.query.all() if u not in project.users]
+    return render_template('project.html', 
+                           project=project,
+                           users=users)
 
 @app.route('/project/<int:id>/pad/new', methods=['GET'])
 @login_required
