@@ -466,7 +466,7 @@ function preprocess(text, type, filelist) {
 }
 
 function count_lines(str) {
-  return str.split(/\r\n|\r|\n/).length
+  return str.split(/\n\r|\r|\n/).length
 }
 
 function findPad(text) {
