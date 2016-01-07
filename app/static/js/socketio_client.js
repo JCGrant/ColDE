@@ -89,6 +89,8 @@ socket.on('server_client_changeset', function(cs) {
   pad.csA = nextA;
   pad.csX = nextX;
   pad.csY = nextY;
+  // Copy the list of received comments to D.
+  D['comments'] = cs['comments'];
   // Apply D changeset on current code mirror view even if the updated pad
   // is not the one we display.
   processExternalChangeset(cs['padId'], D);
@@ -200,7 +202,18 @@ var maybeSend = function() {
     pads[i].csY['baseRev'] = pads[i].baseRev;
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
-    console.log('intainte');
+    // Add possible comments.
+    console.log('found: ');
+    if (pads[i].id in codeToComment) {
+      console.log('enters: ');
+      pads[i].csY['comments'] = {};
+      for (var code in codeToComment[pads[i].id]) {
+        var comment = codeToComment[pads[i].id][code];
+        pads[i].csY['comments'][code] = comment;
+      }
+      delete codeToComment[pads[i].id];
+    }
+    console.log('sends ' + JSON.stringify(pads[i].csY));
     socket.emit('client_server_changeset', pads[i].csY);
     console.log('a emis');
     // Compute pad len by adding comments len.

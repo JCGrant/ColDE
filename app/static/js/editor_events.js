@@ -37,6 +37,10 @@ var randomString = function(length) {
   return text;
 }
 
+/// Mapping from comment code to the corresponding comment that have not been
+/// submitted to server yet.
+codeToComment = {};
+
 /**
  * Called when an user has added a comment.
  */
@@ -64,10 +68,18 @@ var addComment = function() {
     // Expand comments.
     expandEditorComments(displayedPad);
     // Create changeset object.
-    newCs = Changeset(getTextLength(displayedPad));
+    newCs = new Changeset(getTextLength(displayedPad));
     newCs.newLen = newCs.baseLen + 20;
     var offset = getAbsoluteOffset(displayedPad, cursorMarker.find());
-    newCs.charBank = '!<&' + randomString(14) + '&<!';
+    // Generate code and send it to the next changeset.
+    var code = '!<&' + randomString(14) + '&<!';
+    if (!(displayedPad in codeToComment)) {
+      codeToComment[displayedPad] = {};
+    }
+    // Add it to the two dictionaries.
+    codeToComment[displayedPad][code] = comment;
+    allComments[code] = comment;
+    newCs.charBank = code;
     newCs.ops = [];
     if (offset > 0) {
       newCs.ops.push(['=', offset]);
@@ -78,7 +90,7 @@ var addComment = function() {
     }
     // Remove cursor marker.
     removeMarker(cursorMarker);
-    unexpandableMarker.clear();
+    cursorMarker.clear();
     console.log('after2 ' + editor.getAllMarks().length);
     // Collapse comments.
     collapseEditorComments(displayedPad);

@@ -73,6 +73,7 @@ def handle(changeset):
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         updateDBPad(changeset)
         # Broadcast to all clients.
+        print (str(changeset))
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)

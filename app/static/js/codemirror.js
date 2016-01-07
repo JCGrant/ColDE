@@ -272,10 +272,13 @@ function joinLines(cm) {
   });
 }
 
+/// Dictionary to map comments from their code to themselves.
+var allComments = {};
+
 /**
  * Detect comments added by a new changeset, and display them in the client.
  */
-var detectComments = function(editor, changeset) {
+var detectComments = function(editor) {
   var content = editor.getValue('');
   var p = 0;
   while (true) {
@@ -292,8 +295,8 @@ var detectComments = function(editor, changeset) {
       var end = editor.posFromIndex(p + 20);
       editor.replaceRange('', start, end, 'aux');
       // Display the comment.
-      var comment = changeset[commentCode];
-      comment['from'] = start['from'];
+      var comment = allComments[commentCode];
+      comment['line'] = start['line'];
       comment['ch'] = start['ch'];
       displayComment(comment);
       // Update pointer to skip the found range.
@@ -311,7 +314,13 @@ var detectComments = function(editor, changeset) {
 processExternalChangeset = function(padId, changeset) {
   // Retrieve the editor instance.
   var editor = padEditor[padId];
-
+  console.log(changeset);
+  // Add new comments to allComments.
+  if ('comments' in changeset) {
+    for (var code in changeset['comments']) {
+      allComments[code] = changeset['comments'][code];
+    }
+  }
   // Wrap everything in an atomic operation.
   editor.operation(function() {
     // Expand code comments to occupy real space in editor.
@@ -345,7 +354,7 @@ processExternalChangeset = function(padId, changeset) {
     // Compact code comments to no longer occupy space in editor.
     collapseEditorComments(padId);
     // Expand possible newly added comments.
-    detectComments(editor, changeset);
+    detectComments(editor);
   });
 };
 
