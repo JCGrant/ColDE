@@ -20,7 +20,9 @@ var displayComment = function(comment) {
     'line': comment['line'],
     'ch': comment['ch']
   }
-  padEditor[comment['padId']].setBookmark(position, {'widget' : element});
+  var marker = 
+    padEditor[comment['padId']].setBookmark(position, {'widget' : element});
+  myMarkers.push([marker, true]);
 }
 
 /**
@@ -57,6 +59,8 @@ var addComment = function() {
   var newCs;
   editor.operation(function() {
     var cursorMarker = editor.setBookmark(cursor);
+    myMarkers.push([cursorMarker, false]);
+    console.log('before2 ' + editor.getAllMarks().length);
     // Expand comments.
     expandEditorComments(displayedPad);
     // Create changeset object.
@@ -72,6 +76,10 @@ var addComment = function() {
     if (offset != newCs.baseLen) {
       newCs.ops.push(['=', newCs.baseLen - offset]);
     }
+    // Remove cursor marker.
+    removeMarker(cursorMarker);
+    unexpandableMarker.clear();
+    console.log('after2 ' + editor.getAllMarks().length);
     // Collapse comments.
     collapseEditorComments(displayedPad);
   });

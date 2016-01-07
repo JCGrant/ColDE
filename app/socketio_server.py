@@ -91,6 +91,7 @@ def updateDBPad(changeset):
         return
     # Update pad content.
     pad.text = applyChangeset(pad.text, changeset)
+    print (pad.text)
     # Write to DB.
     db.session.add(pad)
     db.session.commit()

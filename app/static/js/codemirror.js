@@ -46,7 +46,7 @@ for (var i = 0; i < pads.length; ++i) {
     }
   });
   // Functions managing interaction with the socketio_client.
-  blockedOrigins = ['external', 'setValue']
+  blockedOrigins = ['external', 'setValue', 'aux']
   editor.on('beforeChange', function(instance, changeset) {
     // Do not propagate the update if it was from a different client.
     if (changeset.hasOwnProperty('origin')
@@ -116,16 +116,50 @@ function getCompletions(token, context) {
   return found;
 };
 
+/// Dictionary to say whether a comment marker is ours or not, and whether
+/// it is expandable or not.
+var myMarkers = [];
+var removeMarker = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      index = i;
+      break;
+    }
+  }
+  if (index > -1) {
+    myMarkers.splice(index, 1);
+  }
+}
+var isUnexpandable = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      return !myMarkers[i][1];
+    }
+  }
+  return true;
+}
+
 /**
  * Expands the comments existing in a pad to occupy real space.
  */
 var expandEditorComments = function(padId) {
   var editor = padEditor[padId];
   // Traverse markers and replace them with non-zero range.
-  for (var marker in editor.getAllMarks()) {
-      var markerPosition = marker.find();
-      editor.replaceRange(Array(21).join('a'), markerPosition, markerPosition);
+  var allMarks = editor.getAllMarks();
+  console.log(allMarks.length);
+  for (var i = 0; i < allMarks.length; ++i) {
+    // Skip update if mark is unexpandable.
+    var marker = allMarks[i];
+    if (isUnexpandable(marker)) {
+      continue;
     }
+    var markerPosition = marker.find();
+    console.log(markerPosition);
+    editor.replaceRange(Array(21).join('a'), 
+      markerPosition, markerPosition, 'aux');
+  }
 }
 
 /**
@@ -134,14 +168,20 @@ var expandEditorComments = function(padId) {
 var collapseEditorComments = function(padId) {
   var editor = padEditor[padId];
   // Traverse markers and replace them with zero range.
-  for (var marker in editor.getAllMarks()) {
-      var startPosition = marker.find();
-      var endPosition = {
-        'line': startPosition['line'],
-        'ch': startPosition['ch'] + 20
-      };
-      editor.replaceRange('', startPosition, endPosition);
+  var allMarks = editor.getAllMarks();
+  for (var i = 0; i < allMarks.length; ++i) {
+    // Skip update if mark is unexpandable.
+    var marker = allMarks[i];
+    if (isUnexpandable(marker)) {
+      continue;
     }
+    var startPosition = marker.find();
+    var endPosition = {
+      'line': startPosition['line'],
+      'ch': startPosition['ch'] + 20
+    };
+    editor.replaceRange('', startPosition, endPosition, 'aux');
+  }
 }
 
 // The bindings defined specifically in the Sublime Text mode
@@ -250,7 +290,7 @@ var detectComments = function(editor, changeset) {
       // Found valid comment so null that range.
       var start = editor.posFromIndex(p);
       var end = editor.posFromIndex(p + 20);
-      editor.replaceRange('', start, end);
+      editor.replaceRange('', start, end, 'aux');
       // Display the comment.
       var comment = changeset[commentCode];
       comment['from'] = start['from'];
