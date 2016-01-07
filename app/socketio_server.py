@@ -72,6 +72,13 @@ def handle(changeset):
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         updateDBPad(changeset)
+        # Add the new comments to DB.
+        if 'comments' in changeset:
+            for code, comment in changeset['comments']:
+                newComment = Comment(comment['author'], comment['text'])
+                newComment.pad_id = comment['padId']
+                db.session.add(newComment)
+            db.session.commit()
         # Broadcast to all clients.
         print (str(changeset))
         emit('server_client_changeset', changeset, room=changeset['projectId'])
