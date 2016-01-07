@@ -1,6 +1,6 @@
 function createNewPad() {
 	var padName = document.getElementById("padName").value;
-	window.location.href += 'pad/new?filename=' + padName;
+	window.location.href = '/project/' + projectId + '/pad/new?filename=' + padName;
 }
 
 $('#createNewPadButton').click(createNewPad);
@@ -43,4 +43,16 @@ function closeConsole() {
   }
 }
 
-$('#newUserSelect').select2();
+var $newUserSelect = $('#newUserSelect');
+$newUserSelect.select2();
+
+function addNewUsers() {
+  var usernames = $newUserSelect.val() || [];
+  var fields = '';
+  usernames.forEach(function(username) {
+    fields += 'username=' + username + '&';
+  });
+	window.location.href = '/project/' + projectId + '/add_users?' + fields;
+}
+
+$('#newUserButton').click(addNewUsers);

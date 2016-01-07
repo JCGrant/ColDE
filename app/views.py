@@ -84,9 +84,22 @@ def project(id):
 def new_pad(id):
     filename = request.args.get('filename', 'new_file')
     project = Project.query.get(id)
-    if project is None:
+    if project is None or g.user not in project.users:
         return redirect(url_for('home'))
     pad = Pad(filename, id)
     db.session.add(pad)
+    db.session.commit()
+    return redirect(url_for('project', id=id)) 
+
+@app.route('/project/<int:id>/add_users/', methods=['GET'])
+@login_required
+def add_users(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    usernames = request.args.getlist('username')
+    for username in usernames:
+        user = User.query.filter_by(username=username).first()
+        project.users.append(user)
     db.session.commit()
     return redirect(url_for('project', id=id)) 
