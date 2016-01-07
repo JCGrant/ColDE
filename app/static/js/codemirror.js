@@ -409,17 +409,18 @@ function closeConsole() {
 
 function preprocess(text, type, filelist) {
   if(type === 1) {
-    var regex = new RegExp('<[\\s|\\t]*script.*src[\\s|\\t]*=[^>]*>', 'gi');
-    var regex2 = new RegExp('<[\\s|\\t]*link.*rel[\\s|\\t]*=[\\s|\\t]*"stylesheet"[^>]*>', 'gi');
+    var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
+    var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*["\']stylesheet["\'][^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
-      var filename = /src[\s|\t]*=[\s|\t]*"[^"]*"/gi.exec(res[0]);
+      var filename = /src[\s\t]*=[\s\t]*["'][^"^']*["']/gi.exec(res[0]);
+      console.log(filename);
       if (filename == null) {
         continue;
       }
-      filename = filename[0].split(/[\'|\"]/);
+      filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/src[\s|\t]*=[\s|\t]*"[^"]*"/gi, '');
+      var toReplace = res[0].replace(/src[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
@@ -427,11 +428,11 @@ function preprocess(text, type, filelist) {
       text = text.replace(res[0], toReplace);
     } 
     while((res = regex2.exec(text)) !== null) {
-      var filename = /href[\s|\t]*=[\s|\t]*"[^"]*"/gi.exec(res[0])
-      filename = filename[0].split(/[\'|\"]/);
+      var filename = /href[\s\t]*=[\s\t]*["'][^"^']*["']/gi.exec(res[0])
+      filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/rel[\s|\t]*=[\s|\t]*"stilesheet"/gi, '');
-      toReplace = toReplace.replace(/href[\s|\t]*=[\s|\t]*"[^"]*"/gi, '');
+      var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
+      toReplace = toReplace.replace(/href[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       toReplace = toReplace.replace('link', 'style');
       indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
@@ -440,12 +441,13 @@ function preprocess(text, type, filelist) {
       text = text.replace(res[0], toReplace);
     } 
   } else {
-    var regex = new RegExp ('.*import.*[\\n|\\r]', 'g');
+    var regex = new RegExp ('.*import.*[\\n\\r]', 'g');
     //TODO from X import Y;
     var res;
     while((res = regex.exec(text)) !== null) {
       var filename = res[0].slice(6);
       filename = filename.replace(/\s/g, '');
+      filename = filename + ".py";
       indexToAdd = res.index;
       indexAfterAdd = indexToAdd + res[0].length;
       if(filelist.indexOf(filename) > -1) {
