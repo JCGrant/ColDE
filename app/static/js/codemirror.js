@@ -47,19 +47,19 @@ var displayComment = function(comment) {
  */
 var detectComments = function(editor) {
   var content = editor.getValue('');
-  var p = 0;
+  var p = content.length;
   while (true) {
     // Search for the next possible beginning.
-    p = content.indexOf('!<&', p);
+    p = content.lastIndexOf('&<!', p);
     if (p == -1) {
       break;
     }
     // Check if valid comment.
-    var commentCode = content.substring(p, p + 20);
-    if (commentCode.length === 20 && commentCode.substring(17, 20) === '&<!') {
+    var commentCode = content.substring(p - 17, p + 3);
+    if (commentCode.length === 20 && commentCode.substring(0, 3) === '!<&') {
       // Found valid comment so null that range.
-      var start = editor.posFromIndex(p);
-      var end = editor.posFromIndex(p + 20);
+      var start = editor.posFromIndex(p - 17);
+      var end = editor.posFromIndex(p + 3);
       editor.replaceRange('', start, end, 'aux');
       // Display the comment.
       var comment = allComments[commentCode];
@@ -67,10 +67,10 @@ var detectComments = function(editor) {
       comment['ch'] = start['ch'];
       displayComment(comment);
       // Update pointer to skip the found range.
-      p += 20;
+      p -= 18;
     } else {
       // Increment p to avoid cycling.
-      ++p;
+      --p;
     }
   }
 }
@@ -134,11 +134,7 @@ for (var i = 0; i < pads.length; ++i) {
   // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
   padEditor[pads[i].id] = editor;
-}
-
-for (var i = 0; i < pads.length; ++i) {
   // Wrap text updates in one atomic operation.
-  var editor = padEditor[pads[i].id];
   editor.operation(function() {
     // Set the content of the created pad.
     editor.setValue(pads[i].text);
