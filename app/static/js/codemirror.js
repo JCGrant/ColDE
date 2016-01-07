@@ -1,3 +1,39 @@
+function createEditor(filename) {
+  var language = ""
+  var split = filename.split(".");
+  var ext = "";
+  
+  if(split[1]) {
+    ext = split[1];
+  }
+
+  switch(ext) {
+    case "js":
+      language = "javascript"
+      break;
+    case "py":
+      language = "python"
+      break;
+    case "html":
+      language = "htmlmixed"
+      break;
+  }
+
+  var editor = CodeMirror.fromTextArea(textArea, {
+    lineNumbers: true,
+    mode: {name: language, globalVars: true},
+    keyMap: "sublime",
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    showCursorWhenSelecting: true,
+    theme: 'monokai',
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    tabSize: 2
+  });
+  return editor;
+}
+
 var editorAreas = document.getElementById('editorAreas');
 
 /// Maps pad id to pad text area.
@@ -12,18 +48,7 @@ for (var i = 0; i < pads.length; ++i) {
   editorAreas.appendChild(textArea);
   padTextArea[pads[i].id] = textArea;
   // Create the editor instance.
-  var editor = CodeMirror.fromTextArea(textArea, {
-    lineNumbers: true,
-    mode: {name: "javascript", globalVars: true},
-    keyMap: "sublime",
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    showCursorWhenSelecting: true,
-    theme: 'monokai',
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    tabSize: 2
-  });
+  var editor = createEditor(pads[i]["filename"])
   textArea.nextSibling.style.display = 'none';
   // Configuration.
   editor.setOption('extraKeys', {
