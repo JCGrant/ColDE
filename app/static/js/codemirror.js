@@ -57,6 +57,7 @@ for (var i = 0; i < pads.length; ++i) {
   });
   // Set the content of the created pad.
   editor.setValue(pads[i].text);
+  // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
   padEditor[pads[i].id] = editor;
 }

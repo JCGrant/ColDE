@@ -192,7 +192,10 @@ var maybeSend = function() {
     socket.emit('client_server_changeset', pads[i].csY);
     // Update changesets.
     pads[i].csX = pads[i].csY;
-    pads[i].csY = new Changeset(getTextLength(pads[i].id));
+    // Compute pad len by adding comments len.
+    var padActualLen = getTextLength(pads[i].id) +
+      20 * padEditor[pads[i].id].getAllMarks().length;
+    pads[i].csY = new Changeset(padActualLen);
   }
 
   lastSent = t;

@@ -24,24 +24,60 @@ var displayComment = function(comment) {
 }
 
 /**
+ * Creates a random ASCII string with a desired length.
+ */
+var randomString = function(length) {
+  var text = '';
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i < length; ++i) {
+    text += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return text;
+}
+
+/**
  * Called when an user has added a comment.
  */
 var addComment = function() {
-
+  // Fetch current editor.
+  var editor = padEditor[displayedPad];
   // TODO(): prompt user for text.
   var text = 'blah blah';
-  // Create comment.
+  // Create the comment.
   var comment = {};
   // TODO(): get current username.
   comment['author'] = 'george';
   comment['text'] = text;
-  var cursor = padEditor[displayedPad].getCursor();
+  var cursor = editor.getCursor();
   comment['line'] = cursor['line'];
   comment['ch'] = cursor['ch'];
   comment['padId'] = displayedPad;
   comment['projectId'] = projectId;
-  // Notice the server.
-  onCommentAdded(comment);
+  // Create the corresponding changeset.
+  var newCs;
+  editor.operation(function() {
+    var cursorMarker = editor.setBookmark(cursor);
+    // Expand comments.
+    expandEditorComments(displayedPad);
+    // Create changeset object.
+    newCs = Changeset(getTextLength(displayedPad));
+    newCs.newLen = newCs.baseLen + 20;
+    var offset = getAbsoluteOffset(displayedPad, cursorMarker.find());
+    newCs.charBank = '!<&' + randomString(14) + '&<!';
+    newCs.ops = [];
+    if (offset > 0) {
+      newCs.ops.push(['=', offset]);
+    }
+    newCs.ops.push(['+', 20]);
+    if (offset != newCs.baseLen) {
+      newCs.ops.push(['=', newCs.baseLen - offset]);
+    }
+    // Collapse comments.
+    collapseEditorComments(displayedPad);
+  });
+  // Apply the changeset.
+  var pad = padById[displayedPad];
+  pad.csY = pad.csY.applyChangeset(newCs);
   // Display the comment in client, although not ACKed.
   displayComment(comment);
 }
