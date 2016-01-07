@@ -77,6 +77,7 @@ def handle(changeset):
             for code, comment in changeset['comments']:
                 newComment = Comment(comment['author'], comment['text'])
                 newComment.pad_id = comment['padId']
+                newComment.code = comment['code']
                 db.session.add(newComment)
             db.session.commit()
         # Broadcast to all clients.

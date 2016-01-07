@@ -85,8 +85,7 @@ class Comment(db.Model):
     pad_id = db.Column(db.Integer, db.ForeignKey('pad.id'))
     author = db.Column(db.String(50))
     text = db.Column(db.Text)
-    pos_line = db.Column(db.Integer)
-    pos_ch = db.Column(db.Integer)
+    code = db.Column(db.String(20))
 
     def __init__(self, author, text):
         self.author = author
