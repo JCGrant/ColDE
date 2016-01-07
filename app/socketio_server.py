@@ -1,7 +1,7 @@
 from flask import request, copy_current_request_context
 from flask_socketio import send, emit, join_room, leave_room
 from app import socketio, db
-from app.models import Pad, User, Revision
+from app.models import Pad, User, Revision, Comment
 from threading import Lock
 from math import inf as infinity
 from copy import deepcopy
@@ -74,7 +74,7 @@ def handle(changeset):
         updateDBPad(changeset)
         # Add the new comments to DB.
         if 'comments' in changeset:
-            for code, comment in changeset['comments']:
+            for code, comment in changeset['comments'].items():
                 newComment = Comment(comment['author'], comment['text'])
                 newComment.pad_id = comment['padId']
                 newComment.code = comment['code']

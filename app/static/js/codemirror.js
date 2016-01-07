@@ -1,5 +1,80 @@
 var editorAreas = document.getElementById('editorAreas');
 
+/// Dictionary to say whether a comment marker is ours or not, and whether
+/// it is expandable or not.
+var myMarkers = [];
+var removeMarker = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      index = i;
+      break;
+    }
+  }
+  if (index > -1) {
+    myMarkers.splice(index, 1);
+  }
+}
+var isUnexpandable = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      return !myMarkers[i][1];
+    }
+  }
+  return true;
+}
+
+/**
+ * Adds the bookmark in codemirror.
+ */
+var displayComment = function(comment) {
+  // TODO(): display comment properly.
+  var element = document.createElement('BUTTON');
+
+  var position = {
+    'line': comment['line'],
+    'ch': comment['ch']
+  }
+  console.log(comment['padId']);
+  var marker = 
+    padEditor[comment['padId']].setBookmark(position, {'widget' : element});
+  myMarkers.push([marker, true]);
+}
+
+/**
+ * Detect comments added by a new changeset, and display them in the client.
+ */
+var detectComments = function(editor) {
+  var content = editor.getValue('');
+  var p = 0;
+  while (true) {
+    // Search for the next possible beginning.
+    p = content.indexOf('!<&', p);
+    if (p == -1) {
+      break;
+    }
+    // Check if valid comment.
+    var commentCode = content.substring(p, p + 20);
+    if (commentCode.length === 20 && commentCode.substring(17, 20) === '&<!') {
+      // Found valid comment so null that range.
+      var start = editor.posFromIndex(p);
+      var end = editor.posFromIndex(p + 20);
+      editor.replaceRange('', start, end, 'aux');
+      // Display the comment.
+      var comment = allComments[commentCode];
+      comment['line'] = start['line'];
+      comment['ch'] = start['ch'];
+      displayComment(comment);
+      // Update pointer to skip the found range.
+      p += 20;
+    } else {
+      // Increment p to avoid cycling.
+      ++p;
+    }
+  }
+}
+
 /// Maps pad id to pad text area.
 var padTextArea = {};
 /// Maps pad id to pad editor.
@@ -55,11 +130,21 @@ for (var i = 0; i < pads.length; ++i) {
     }
     onBeforeChange(changeset);
   });
-  // Set the content of the created pad.
-  editor.setValue(pads[i].text);
+  
   // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
   padEditor[pads[i].id] = editor;
+}
+
+for (var i = 0; i < pads.length; ++i) {
+  // Wrap text updates in one atomic operation.
+  var editor = padEditor[pads[i].id];
+  editor.operation(function() {
+    // Set the content of the created pad.
+    editor.setValue(pads[i].text);
+    // Detect comments and display them properly.
+    detectComments(editor);
+  });
 }
 
 // Display the initial pad.
@@ -115,31 +200,6 @@ function getCompletions(token, context) {
   }
   return found;
 };
-
-/// Dictionary to say whether a comment marker is ours or not, and whether
-/// it is expandable or not.
-var myMarkers = [];
-var removeMarker = function(marker) {
-  var index = -1;
-  for (var i = 0; i < myMarkers.length; ++i) {
-    if (myMarkers[i][0] == marker) {
-      index = i;
-      break;
-    }
-  }
-  if (index > -1) {
-    myMarkers.splice(index, 1);
-  }
-}
-var isUnexpandable = function(marker) {
-  var index = -1;
-  for (var i = 0; i < myMarkers.length; ++i) {
-    if (myMarkers[i][0] == marker) {
-      return !myMarkers[i][1];
-    }
-  }
-  return true;
-}
 
 /**
  * Expands the comments existing in a pad to occupy real space.
@@ -270,42 +330,6 @@ function joinLines(cm) {
     }
     cm.setSelections(ranges, 0);
   });
-}
-
-/// Dictionary to map comments from their code to themselves.
-var allComments = {};
-
-/**
- * Detect comments added by a new changeset, and display them in the client.
- */
-var detectComments = function(editor) {
-  var content = editor.getValue('');
-  var p = 0;
-  while (true) {
-    // Search for the next possible beginning.
-    p = content.indexOf('!<&', p);
-    if (p == -1) {
-      break;
-    }
-    // Check if valid comment.
-    var commentCode = content.substring(p, p + 20);
-    if (commentCode.length === 20 && commentCode.substring(17, 20) === '&<!') {
-      // Found valid comment so null that range.
-      var start = editor.posFromIndex(p);
-      var end = editor.posFromIndex(p + 20);
-      editor.replaceRange('', start, end, 'aux');
-      // Display the comment.
-      var comment = allComments[commentCode];
-      comment['line'] = start['line'];
-      comment['ch'] = start['ch'];
-      displayComment(comment);
-      // Update pointer to skip the found range.
-      p += 20;
-    } else {
-      // Increment p to avoid cycling.
-      ++p;
-    }
-  }
 }
 
 /**

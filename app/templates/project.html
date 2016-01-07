@@ -87,17 +87,18 @@
     </script>
     <script>
         var projectId = {{ project.id }};
-
+        /// Dictionary to map comments from their code to themselves.
+        var allComments = {};
+        /// List of all pads.
         var pads = [];
         {% for pad in project.pads %}
             var currentComments = [];
             {% for comment in pad.comments %}
-              currentComments.push({
-                'author': {{ comment.author }},
+              allComments[htmlDecode(`{{ comment.code|e }}`)] = {
+                'author': '{{ comment.author }}',
                 'text': htmlDecode(`{{ comment.text|e }}`),
-                'line': {{ comment.pos_line }},
-                'ch': {{ comment.pos_ch }}
-              });
+                'padId': {{ comment.pad_id }}
+              };
             {% endfor %}
             pads.push({
               'id': {{ pad.id }},

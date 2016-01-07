@@ -10,22 +10,6 @@ $('.pad-button').click(function() {
 });
 
 /**
- * Adds the bookmark in codemirror.
- */
-var displayComment = function(comment) {
-  // TODO(): display comment properly.
-  var element = document.createElement('BUTTON');
-
-  var position = {
-    'line': comment['line'],
-    'ch': comment['ch']
-  }
-  var marker = 
-    padEditor[comment['padId']].setBookmark(position, {'widget' : element});
-  myMarkers.push([marker, true]);
-}
-
-/**
  * Creates a random ASCII string with a desired length.
  */
 var randomString = function(length) {
@@ -79,6 +63,8 @@ var addComment = function() {
     // Add it to the two dictionaries.
     codeToComment[displayedPad][code] = comment;
     allComments[code] = comment;
+    comment['code'] = code;
+    // Fill newCs.
     newCs.charBank = code;
     newCs.ops = [];
     if (offset > 0) {
