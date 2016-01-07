@@ -393,8 +393,8 @@ function toggleWebView() {
     showConsole();
   }
   webViewOpen = !webViewOpen;
-  var webVIewToggleButtonText = (webViewOpen ? 'Close' : 'Open') + ' Web View';
-  webViewToggleButton.text(webVIewToggleButtonText);
+  var webVIewToggleButtonText = (webViewOpen ? 'Close' : 'Open') + ' Web View ' + '<span class="glyphicon glyphicon-modal-window"></span>';
+  webViewToggleButton.html(webVIewToggleButtonText);
 }
 
 function showConsole() {
