@@ -233,6 +233,39 @@ function joinLines(cm) {
 }
 
 /**
+ * Detect comments added by a new changeset, and display them in the client.
+ */
+var detectComments = function(editor, changeset) {
+  var content = editor.getValue('');
+  var p = 0;
+  while (true) {
+    // Search for the next possible beginning.
+    p = content.indexOf('!<&', p);
+    if (p == -1) {
+      break;
+    }
+    // Check if valid comment.
+    var commentCode = content.substring(p, p + 20);
+    if (commentCode.length === 20 && commentCode.substring(17, 20) === '&<!') {
+      // Found valid comment so null that range.
+      var start = editor.posFromIndex(p);
+      var end = editor.posFromIndex(p + 20);
+      editor.replaceRange('', start, end);
+      // Display the comment.
+      var comment = changeset[commentCode];
+      comment['from'] = start['from'];
+      comment['ch'] = start['ch'];
+      displayComment(comment);
+      // Update pointer to skip the found range.
+      p += 20;
+    } else {
+      // Increment p to avoid cycling.
+      ++p;
+    }
+  }
+}
+
+/**
  * Applies changeset to current editor content.
  */
 processExternalChangeset = function(padId, changeset) {
@@ -244,7 +277,7 @@ processExternalChangeset = function(padId, changeset) {
     // Expand code comments to occupy real space in editor.
     expandEditorComments(padId);
     // Prepare change application.
-    var prevContent = editor.getValue("");
+    var prevContent = editor.getValue('');
     console.assert(
       changeset.baseLen === prevContent.length, "cannot apply change");
     // Init content and char back pointers.
@@ -271,6 +304,8 @@ processExternalChangeset = function(padId, changeset) {
     }
     // Compact code comments to no longer occupy space in editor.
     collapseEditorComments(padId);
+    // Expand possible newly added comments.
+    detectComments(editor, changeset);
   });
 };
 
