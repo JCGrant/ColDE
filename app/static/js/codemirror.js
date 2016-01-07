@@ -115,6 +115,34 @@ function getCompletions(token, context) {
   return found;
 };
 
+/**
+ * Expands the comments existing in a pad to occupy real space.
+ */
+var expandEditorComments = function(padId) {
+  var editor = padEditor[padId];
+  // Traverse markers and replace them with non-zero range.
+  for (var marker in editor.getAllMarks()) {
+      var markerPosition = marker.find();
+      editor.replaceRange(Array(21).join('a'), markerPosition, markerPosition);
+    }
+}
+
+/**
+ * Collapses the comments existing in a pad to avoid being seen by user.
+ */
+var collapseEditorComments = function(padId) {
+  var editor = padEditor[padId];
+  // Traverse markers and replace them with zero range.
+  for (var marker in editor.getAllMarks()) {
+      var startPosition = marker.find();
+      var endPosition = {
+        'line': startPosition['line'],
+        'ch': startPosition['ch'] + 20
+      };
+      editor.replaceRange('', startPosition, endPosition);
+    }
+}
+
 // The bindings defined specifically in the Sublime Text mode
 var bindings = {
   "Alt-Left": "goSubwordLeft",
@@ -208,14 +236,16 @@ function joinLines(cm) {
  */
 processExternalChangeset = function(padId, changeset) {
   // Retrieve the editor instance.
-  console.log(padId);
   var editor = padEditor[padId];
-  var prevContent = editor.getValue("");
-  console.assert(
-    changeset.baseLen === prevContent.length, "cannot apply change");
 
   // Wrap everything in an atomic operation.
   editor.operation(function() {
+    // Expand code comments to occupy real space in editor.
+    expandEditorComments(padId);
+    // Prepare change application.
+    var prevContent = editor.getValue("");
+    console.assert(
+      changeset.baseLen === prevContent.length, "cannot apply change");
     // Init content and char back pointers.
     var contentPointer = prevContent.length;
     var cbPointer = changeset.charBank.length;
@@ -238,6 +268,8 @@ processExternalChangeset = function(padId, changeset) {
         contentPointer -= c;
       }
     }
+    // Compact code comments to no longer occupy space in editor.
+    collapseEditorComments(padId);
   });
 };
 

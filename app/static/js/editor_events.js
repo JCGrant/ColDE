@@ -24,7 +24,7 @@ var displayComment = function(comment) {
 }
 
 /**
- * Called when an user wants to add a comment.
+ * Called when an user has added a comment.
  */
 var addComment = function() {
 

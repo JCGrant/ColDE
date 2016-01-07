@@ -123,11 +123,24 @@ if (typeof(sender) == 'undefined') {
  * Updates the prev length of the text.
  */
 var onBeforeChange = function(changeset) {
-  prevLen = getTextLength(displayedPad);
-  changeset['removed'] 
-    = [getTextRange(displayedPad, changeset['from'], changeset['to'])];
-  newCs = new Changeset(prevLen).fromCodeMirror(
+  // Fetch current editor.
+  var displayedEditor = padEditor[displayedPad];
+  var newCs;
+  // Wrap everything in an atomic operation.
+  displayedEditor.operation(function() {
+    // Add bookmarks for easy position tracking.
+    var fromMarker = displayedEditor.setBookmark(changeset['from']);
+    var toMarker = displayedEditor.setBookmark(changeset['to']);
+    // Expand.
+    expandEditorComments(displayedPad);
+    // Update the CM changeset.
+    changeset['removed'] 
+      = getTextRange(displayedPad, fromMarker.find(), toMarker.find());
+    newCs = new Changeset(getTextLength(displayedPad)).fromCodeMirror(
       changeset, getAbsoluteOffset(displayedPad, changeset['from']));
+    // Collapse.
+    collapseEditorComments(displayedPad);
+  });
   // Merge changeset with csY.
   var pad = padById[displayedPad];
   pad.csY = pad.csY.applyChangeset(newCs);
