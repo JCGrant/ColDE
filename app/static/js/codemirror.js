@@ -383,6 +383,20 @@ function runit() {
    });
 }
 
+webViewOpen = false;
+var webViewToggleButton = $("#toggleWebView");
+
+function toggleWebView() {
+  if (webViewOpen) {
+    closeConsole();
+  } else {
+    showConsole();
+  }
+  webViewOpen = !webViewOpen;
+  var webVIewToggleButtonText = (webViewOpen ? 'Close' : 'Open') + ' Web View';
+  webViewToggleButton.text(webVIewToggleButtonText);
+}
+
 function showConsole() {
   if(document.getElementById("webview") == null) {
     var editorview = document.getElementById("editorview");
@@ -406,6 +420,7 @@ function closeConsole() {
     editorview.className = "col-md-10";
   }
 } 
+
 
 function preprocess(text, type, filelist) {
   if(type === 1) {
@@ -477,5 +492,4 @@ function findPad(text) {
   }
 }
 
-$("#clickCloseConsole").click(closeConsole);
-$("#clickShowConsole").click(showConsole);
+webViewToggleButton.click(toggleWebView);
