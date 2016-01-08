@@ -25,12 +25,25 @@ var isUnexpandable = function(marker) {
   return true;
 }
 
+// Enable bootstrap popover.
+$(document).ready(function() {
+  $('[data-toggle="popover"]').popover();
+});
+
 /**
  * Adds the bookmark in codemirror.
  */
 var displayComment = function(comment) {
   // TODO(): display comment properly.
-  var element = document.createElement('BUTTON');
+  var element = document.createElement('a');
+  element.setAttribute('tabindex', '0');
+  element.setAttribute('class', 'btn btn-lg btn-danger');
+  element.setAttribute('role', 'button');
+  element.setAttribute('data-toggle', 'popover');
+  element.setAttribute('data-trigger', 'focus');
+  element.setAttribute('title', '');
+  element.setAttribute('data-content', comment['text']);
+  console.log(element);
 
   var position = {
     'line': comment['line'],
@@ -48,6 +61,7 @@ var displayComment = function(comment) {
 var detectComments = function(editor) {
   var content = editor.getValue('');
   var p = content.length;
+  console.log('avem ' + content);
   while (true) {
     // Search for the next possible beginning.
     p = content.lastIndexOf('&<!', p);
@@ -65,6 +79,7 @@ var detectComments = function(editor) {
       var comment = allComments[commentCode];
       comment['line'] = start['line'];
       comment['ch'] = start['ch'];
+      console.log('found on ' + comment['line'] + ' ' + comment['ch']);
       displayComment(comment);
       // Update pointer to skip the found range.
       p -= 18;
@@ -345,6 +360,7 @@ processExternalChangeset = function(padId, changeset) {
   editor.operation(function() {
     // Expand code comments to occupy real space in editor.
     expandEditorComments(padId);
+    console.log('after expansion ' + editor.getValue(''));
     // Prepare change application.
     var prevContent = editor.getValue('');
     console.assert(
@@ -371,6 +387,7 @@ processExternalChangeset = function(padId, changeset) {
         contentPointer -= c;
       }
     }
+    console.log('after application ' + editor.getValue(''));
     // Compact code comments to no longer occupy space in editor.
     collapseEditorComments(padId);
     // Expand possible newly added comments.
