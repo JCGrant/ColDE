@@ -34,16 +34,18 @@ $(document).ready(function() {
  * Adds the bookmark in codemirror.
  */
 var displayComment = function(comment) {
-  // TODO(): display comment properly.
+  // Create comment element, to be added in the bookmark.
   var element = document.createElement('a');
   element.setAttribute('tabindex', '0');
   element.setAttribute('class', 'btn btn-lg btn-danger');
   element.setAttribute('role', 'button');
+  element.style.padding = '0px 0px';
+  element.style.width = '5px';
+  element.style.height = '11px';
   element.setAttribute('data-toggle', 'popover');
-  element.setAttribute('data-trigger', 'focus');
-  element.setAttribute('title', '');
+  // element.setAttribute('data-trigger', 'focus');
+  element.setAttribute('data-placement', 'top');
   element.setAttribute('data-content', comment['text']);
-  console.log(element);
 
   var position = {
     'line': comment['line'],
