@@ -25,11 +25,6 @@ var isUnexpandable = function(marker) {
   return true;
 }
 
-// Enable bootstrap popover.
-$(document).ready(function() {
-  $('[data-toggle="popover"]').popover();
-});
-
 /**
  * Adds the bookmark in codemirror.
  */
@@ -51,10 +46,14 @@ var displayComment = function(comment) {
     'line': comment['line'],
     'ch': comment['ch']
   }
-  console.log(comment['padId']);
+  console.log('comment is ' + comment['text']);
   var marker = 
     padEditor[comment['padId']].setBookmark(position, {'widget' : element});
   myMarkers.push([marker, true]);
+  // Enable bootstrap popover.
+  $(document).ready(function() {
+    $('[data-toggle="popover"]').popover();
+  });
 }
 
 /**
