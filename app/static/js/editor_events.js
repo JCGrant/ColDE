@@ -28,11 +28,11 @@ codeToComment = {};
 /**
  * Called when an user has added a comment.
  */
-var addComment = function() {
+var addComment = function(text) {
   // Fetch current editor.
   var editor = padEditor[displayedPad];
   // TODO(): prompt user for text.
-  var text = 'blah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxt';
+  // text = 'blah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxt';
   // Create the comment.
   var comment = {};
   // TODO(): get current username.
@@ -94,5 +94,8 @@ var addCommentButton = document.getElementById('clickAddComment');
  * Called when the add comment button is clicked.
  */
 addCommentButton.onclick = function() {
-  addComment();
+  var text = prompt("Enter comment below");
+  if (text != null) {
+    addComment(text);
+  }
 }
