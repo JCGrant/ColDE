@@ -39,6 +39,7 @@ var displayComment = function(comment) {
   element.style.height = '11px';
   element.setAttribute('data-toggle', 'popover');
   // element.setAttribute('data-trigger', 'focus');
+  // TODO(mihai): set placement according to width / height.
   element.setAttribute('data-placement', 'top');
   element.setAttribute('data-content', comment['text']);
 

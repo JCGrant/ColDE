@@ -87,3 +87,12 @@ var addComment = function() {
   // Display the comment in client, although not ACKed.
   displayComment(comment);
 }
+
+/// The 'add comment' button.
+var addCommentButton = document.getElementById('clickAddComment');
+/**
+ * Called when the add comment button is clicked.
+ */
+addCommentButton.onclick = function() {
+  addComment();
+}
