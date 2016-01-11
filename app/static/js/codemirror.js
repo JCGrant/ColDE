@@ -52,7 +52,7 @@ function createEditor(filename) {
     tabSize: 2
   });
 
-  if(ext == "html") {
+  if (ext == "html") {
     editor.on('change', function runHTML() {
       // Run HTML function.
       var web = editor.getValue();
@@ -61,7 +61,7 @@ function createEditor(filename) {
         return;
       }
       web = preprocess(web, 1);
-      if (myPre != null) {
+      if (myPre != null && web != null) {
         myPre.src = "data:text/html;charset=utf-8," + escape(web);
       }
     });
@@ -171,11 +171,14 @@ var padTextArea = {};
 var padEditor = {};
 // Create code mirror instances for all pads.
 // TODO(mihai): remove this dependency.
+console.log('length is ' + pads.length);
 for (var i = 0; i < pads.length; ++i) {
+  console.log('before iniit ' + i);
   // Create holder text area.
   var textArea = document.createElement('textarea');
   editorAreas.appendChild(textArea);
   padTextArea[pads[i].id] = textArea;
+  console.log('initialise ' + pads[i].id);
   // Create the editor instance.
   var editor = createEditor(pads[i]["filename"])
   textArea.nextSibling.style.display = 'none';
@@ -216,6 +219,9 @@ var updateDisplayedPad = function(padId) {
   // Remove the instance already there, if it exists.
   if (displayedPad != -1) {
     padTextArea[displayedPad].nextSibling.style.display = 'none';
+  }
+  if (!(padId in padTextArea)) {
+    console.log('cacat ' + padId);
   }
   padTextArea[padId].nextSibling.offsetHeight;
   padTextArea[padId].nextSibling.style.display = 'block';
@@ -622,11 +628,15 @@ function count_lines(str) {
 }
 
 function findPad(text) {
-  for (i = 0; i < pads.length; i++) {
+  for (var i = 0; i < pads.length; i++) {
     if(pads[i].filename === text) {
+      if (!(pads[i].id in padEditor)) {
+        return null;
+      }
       return padEditor[pads[i].id].getValue();
     }
   }
+  return null;
 }
 
 webViewToggleButton.click(toggleWebView);
