@@ -264,3 +264,17 @@ var getAllPads = function() {
   allPads['projectId'] = projectId
   return allPads;
 }
+
+
+// Recieve chat message
+socket.on('chat message', function(msg) {
+  $('#messages').append($('<li>').text(msg));
+});
+
+// Send chat message
+var $chat_input = $('#chat input');
+$('#chat').submit(function() {
+  socket.emit('chat message', current_user + ": " + $chat_input.val());
+  $chat_input.val('');
+  return false;
+});
