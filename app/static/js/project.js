@@ -12,6 +12,7 @@ function toggleWebView() {
   if (webViewOpen) {
     closeConsole();
   } else {
+    notClean = true;
     showConsole();
   }
   webViewOpen = !webViewOpen;

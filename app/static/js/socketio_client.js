@@ -250,7 +250,10 @@ if (typeof(sender) == 'undefined') {
  * Called every 500ms.
  */
 tick = function() {
+  // Maybe send existing changes to server.
   maybeSend();
+  // Maybe refresh HTML display.
+  runHTML();
 }
 
 /**

@@ -52,23 +52,33 @@ function createEditor(filename) {
     tabSize: 2
   });
 
-  if (ext == "html") {
-    editor.on('change', function runHTML() {
-      // Run HTML function.
-      var web = editor.getValue();
-      var myPre = document.getElementById("webview");
-      if (typeof(preprocess) == 'undefined') {
-        return;
-      }
-      web = preprocess(web, 1);
-      if (myPre != null && web != null) {
-        myPre.src = "data:text/html;charset=utf-8," + escape(web);
-      }
-    });
-  } 
-
-
   return editor;
+}
+
+/**
+ * Refresh HTML visualised if currently displayed pad is HTML, and it has been
+ * modified.
+ */
+var runHTML = function() {
+  var split = getCurrentPad().split(".");
+  var ext = "";
+  if (split[1]) {
+    ext = split[1];
+  }
+
+  if (ext == "html" && notClean) {
+    // Run HTML function.
+    var web = padEditor[displayedPad].getValue();
+    var myPre = document.getElementById("webview");
+    if (typeof(preprocess) == 'undefined') {
+      return;
+    }
+    web = preprocess(web, 1);
+    if (myPre != null && web != null) {
+      myPre.src = "data:text/html;charset=utf-8," + escape(web);
+    }
+    notClean = false;
+  } 
 }
 
 var editorAreas = document.getElementById('editorAreas');
@@ -169,6 +179,9 @@ var detectComments = function(editor) {
 var padTextArea = {};
 /// Maps pad id to pad editor.
 var padEditor = {};
+/// Global variable to say whether any pad change has occured since last
+/// HTML refresh.
+var notClean = false;
 // Create code mirror instances for all pads.
 // TODO(mihai): remove this dependency.
 console.log('length is ' + pads.length);
@@ -182,6 +195,9 @@ for (var i = 0; i < pads.length; ++i) {
   // Create the editor instance.
   var editor = createEditor(pads[i]["filename"])
   textArea.nextSibling.style.display = 'none';
+  editor.on('change', function() {
+    notClean = true;
+  });
   // Configuration.
   editor.setOption('extraKeys', {
     Tab: function(cm) {
