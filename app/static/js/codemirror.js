@@ -53,6 +53,98 @@ function createEditor(filename) {
 
 var editorAreas = document.getElementById('editorAreas');
 
+/// Dictionary to say whether a comment marker is ours or not, and whether
+/// it is expandable or not.
+var myMarkers = [];
+var removeMarker = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      index = i;
+      break;
+    }
+  }
+  if (index > -1) {
+    myMarkers.splice(index, 1);
+  }
+}
+var isUnexpandable = function(marker) {
+  var index = -1;
+  for (var i = 0; i < myMarkers.length; ++i) {
+    if (myMarkers[i][0] == marker) {
+      return !myMarkers[i][1];
+    }
+  }
+  return true;
+}
+
+/**
+ * Adds the bookmark in codemirror.
+ */
+var displayComment = function(comment) {
+  // Create comment element, to be added in the bookmark.
+  var element = document.createElement('a');
+  element.setAttribute('tabindex', '0');
+  element.setAttribute('class', 'btn btn-lg btn-danger');
+  element.setAttribute('role', 'button');
+  element.style.padding = '0px 0px';
+  element.style.width = '5px';
+  element.style.height = '11px';
+  element.setAttribute('data-toggle', 'popover');
+  // element.setAttribute('data-trigger', 'focus');
+  // TODO(mihai): set placement according to width / height.
+  element.setAttribute('data-placement', 'top');
+  element.setAttribute('data-content', comment['text']);
+
+  var position = {
+    'line': comment['line'],
+    'ch': comment['ch']
+  }
+  console.log('comment is ' + comment['text']);
+  var marker = 
+    padEditor[comment['padId']].setBookmark(position, {'widget' : element});
+  myMarkers.push([marker, true]);
+  // Enable bootstrap popover.
+  $(document).ready(function() {
+    $('[data-toggle="popover"]').popover();
+  });
+}
+
+/**
+ * Detect comments added by a new changeset, and display them in the client.
+ */
+var detectComments = function(editor) {
+  var content = editor.getValue('');
+  var p = content.length;
+  console.log('avem ' + content);
+  while (true) {
+    // Search for the next possible beginning.
+    p = content.lastIndexOf('&<!', p);
+    if (p == -1) {
+      break;
+    }
+    // Check if valid comment.
+    var commentCode = content.substring(p - 17, p + 3);
+    if (commentCode.length === 20 && commentCode.substring(0, 3) === '!<&') {
+      // Found valid comment so null that range.
+      var start = editor.posFromIndex(p - 17);
+      var end = editor.posFromIndex(p + 3);
+      editor.replaceRange('', start, end, 'aux');
+      // Display the comment.
+      var comment = allComments[commentCode];
+      comment['line'] = start['line'];
+      comment['ch'] = start['ch'];
+      console.log('found on ' + comment['line'] + ' ' + comment['ch']);
+      displayComment(comment);
+      // Update pointer to skip the found range.
+      p -= 18;
+    } else {
+      // Increment p to avoid cycling.
+      --p;
+    }
+  }
+}
+
 /// Maps pad id to pad text area.
 var padTextArea = {};
 /// Maps pad id to pad editor.
@@ -77,7 +169,7 @@ for (var i = 0; i < pads.length; ++i) {
   });
 
   // Functions managing interaction with the socketio_client.
-  blockedOrigins = ['external', 'setValue']
+  blockedOrigins = ['external', 'setValue', 'aux']
   editor.on('beforeChange', function(instance, changeset) {
     // Do not propagate the update if it was from a different client.
     if (changeset.hasOwnProperty('origin')
@@ -86,10 +178,17 @@ for (var i = 0; i < pads.length; ++i) {
     }
     onBeforeChange(changeset);
   });
-  // Set the content of the created pad.
-  editor.setValue(pads[i].text);
+  
+  // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
   padEditor[pads[i].id] = editor;
+  // Wrap text updates in one atomic operation.
+  editor.operation(function() {
+    // Set the content of the created pad.
+    editor.setValue(pads[i].text);
+    // Detect comments and display them properly.
+    detectComments(editor);
+  });
 }
 
 // Display the initial pad.
@@ -145,6 +244,49 @@ function getCompletions(token, context) {
   }
   return found;
 };
+
+/**
+ * Expands the comments existing in a pad to occupy real space.
+ */
+var expandEditorComments = function(padId) {
+  var editor = padEditor[padId];
+  // Traverse markers and replace them with non-zero range.
+  var allMarks = editor.getAllMarks();
+  console.log(allMarks.length);
+  for (var i = 0; i < allMarks.length; ++i) {
+    // Skip update if mark is unexpandable.
+    var marker = allMarks[i];
+    if (isUnexpandable(marker)) {
+      continue;
+    }
+    var markerPosition = marker.find();
+    console.log(markerPosition);
+    editor.replaceRange(Array(21).join('a'), 
+      markerPosition, markerPosition, 'aux');
+  }
+}
+
+/**
+ * Collapses the comments existing in a pad to avoid being seen by user.
+ */
+var collapseEditorComments = function(padId) {
+  var editor = padEditor[padId];
+  // Traverse markers and replace them with zero range.
+  var allMarks = editor.getAllMarks();
+  for (var i = 0; i < allMarks.length; ++i) {
+    // Skip update if mark is unexpandable.
+    var marker = allMarks[i];
+    if (isUnexpandable(marker)) {
+      continue;
+    }
+    var startPosition = marker.find();
+    var endPosition = {
+      'line': startPosition['line'],
+      'ch': startPosition['ch'] + 20
+    };
+    editor.replaceRange('', startPosition, endPosition, 'aux');
+  }
+}
 
 // The bindings defined specifically in the Sublime Text mode
 var bindings = {
@@ -239,14 +381,23 @@ function joinLines(cm) {
  */
 processExternalChangeset = function(padId, changeset) {
   // Retrieve the editor instance.
-  console.log(padId);
   var editor = padEditor[padId];
-  var prevContent = editor.getValue("");
-  console.assert(
-    changeset.baseLen === prevContent.length, "cannot apply change");
-
+  console.log(changeset);
+  // Add new comments to allComments.
+  if ('comments' in changeset) {
+    for (var code in changeset['comments']) {
+      allComments[code] = changeset['comments'][code];
+    }
+  }
   // Wrap everything in an atomic operation.
   editor.operation(function() {
+    // Expand code comments to occupy real space in editor.
+    expandEditorComments(padId);
+    console.log('after expansion ' + editor.getValue(''));
+    // Prepare change application.
+    var prevContent = editor.getValue('');
+    console.assert(
+      changeset.baseLen === prevContent.length, "cannot apply change");
     // Init content and char back pointers.
     var contentPointer = prevContent.length;
     var cbPointer = changeset.charBank.length;
@@ -269,6 +420,11 @@ processExternalChangeset = function(padId, changeset) {
         contentPointer -= c;
       }
     }
+    console.log('after application ' + editor.getValue(''));
+    // Compact code comments to no longer occupy space in editor.
+    collapseEditorComments(padId);
+    // Expand possible newly added comments.
+    detectComments(editor);
   });
 };
 

@@ -55,6 +55,7 @@
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Web View <span class="glyphicon glyphicon-modal-window"></span></a></li>
             <li><a href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
+            <li><a id="clickAddComment" href="#">Add Comment</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="/logout">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
@@ -135,14 +136,23 @@
     </script>
     <script>
         var projectId = {{ project.id }};
-
+        /// Dictionary to map comments from their code to themselves.
+        var allComments = {};
+        /// List of all pads.
         var pads = [];
         {% for pad in project.pads %}
-            
+            var currentComments = [];
+            {% for comment in pad.comments %}
+              allComments[htmlDecode(`{{ comment.code|e }}`)] = {
+                'author': '{{ comment.author }}',
+                'text': htmlDecode(`{{ comment.text|e }}`),
+                'padId': {{ comment.pad_id }}
+              };
+            {% endfor %}
             pads.push({
-                'id': {{ pad.id }},
-                'filename': '{{ pad.filename|e }}',
-                'text': htmlDecode(`{{ pad.text|e }}`),
+              'id': {{ pad.id }},
+              'filename': '{{ pad.filename|e }}',
+              'text': htmlDecode(`{{ pad.text|e }}`)
             });
         {% endfor %}
     </script>

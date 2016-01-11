@@ -89,6 +89,8 @@ socket.on('server_client_changeset', function(cs) {
   pad.csA = nextA;
   pad.csX = nextX;
   pad.csY = nextY;
+  // Copy the list of received comments to D.
+  D['comments'] = cs['comments'];
   // Apply D changeset on current code mirror view even if the updated pad
   // is not the one we display.
   processExternalChangeset(cs['padId'], D);
@@ -123,15 +125,54 @@ if (typeof(sender) == 'undefined') {
  * Updates the prev length of the text.
  */
 var onBeforeChange = function(changeset) {
-  prevLen = getTextLength(displayedPad);
-  changeset['removed'] 
-    = [getTextRange(displayedPad, changeset['from'], changeset['to'])];
-  newCs = new Changeset(prevLen).fromCodeMirror(
-      changeset, getAbsoluteOffset(displayedPad, changeset['from']));
+  // Fetch current editor.
+  var displayedEditor = padEditor[displayedPad];
+  var newCs;
+  // Wrap everything in an atomic operation.
+  displayedEditor.operation(function() {
+    // Add bookmarks for easy position tracking.
+    var fromMarker = displayedEditor.setBookmark(changeset['from']);
+    var toMarker = displayedEditor.setBookmark(changeset['to']);
+    myMarkers.push([fromMarker, false], [toMarker, false]);
+    // Expand.
+    expandEditorComments(displayedPad);
+    // Update the CM changeset.
+    changeset['removed'] 
+      = [getTextRange(displayedPad, fromMarker.find(), toMarker.find())];
+    newCs = new Changeset(getTextLength(displayedPad)).fromCodeMirror(
+      changeset, getAbsoluteOffset(displayedPad, fromMarker.find()));
+    // Remove auxiliary markers.
+    console.log('before ' + displayedEditor.getAllMarks().length);
+    removeMarker(fromMarker); fromMarker.clear();
+    removeMarker(toMarker); toMarker.clear();
+    console.log('after ' + displayedEditor.getAllMarks().length);
+    // Collapse.
+    collapseEditorComments(displayedPad);
+  });
   // Merge changeset with csY.
   var pad = padById[displayedPad];
+  console.log('csy is ' + JSON.stringify(pad.csY));
+  console.log('newcs is ' + JSON.stringify(newCs));
   pad.csY = pad.csY.applyChangeset(newCs);
 }
+
+/**
+ * Called when this client creates a new client.
+ * Sends the comment to the server.
+ */
+var onCommentAdded = function(comment) {
+  socket.emit('client_server_comment', comment);
+}
+
+/**
+ * A comment is received from the server.
+ */
+socket.on('server_client_comment', function(comment) {
+  if (comment['clientId'] === userId) {
+    return;
+  }
+  displayComment(comment);
+});
 
 /**
  * Timestamp for the last moment when local changes were submitted to server.
@@ -154,14 +195,44 @@ var maybeSend = function() {
     if (!pads[i].csX.isIdentity() || pads[i].csY.isIdentity()) {
       continue;
     }
+    console.log('not identity');
+    console.log('cs x is ' + pads[i].csX);
+    console.log('cs y is ' + pads[i].csY);
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
+    // Add possible comments.
+    console.log('found: ');
+    if (pads[i].id in codeToComment) {
+      console.log('enters: ');
+      pads[i].csY['comments'] = {};
+      for (var code in codeToComment[pads[i].id]) {
+        var comment = codeToComment[pads[i].id][code];
+        pads[i].csY['comments'][code] = comment;
+      }
+      delete codeToComment[pads[i].id];
+    }
+    console.log('sends ' + JSON.stringify(pads[i].csY));
     socket.emit('client_server_changeset', pads[i].csY);
+    console.log('a emis');
+    // Compute pad len by adding comments len.
+    var expanded = 0;
+    var allMarks = padEditor[pads[i].id].getAllMarks();
+    console.log(i);
+    for (var j = 0; j < allMarks.length; ++j) {
+      if (!isUnexpandable(allMarks[j])) {
+        ++expanded;
+      }
+    }
+    console.log(i);
+    console.log('a emis2');
+    var padActualLen = getTextLength(pads[i].id) + 20 * expanded;
+    console.log('a emis3');
     // Update changesets.
     pads[i].csX = pads[i].csY;
-    pads[i].csY = new Changeset(getTextLength(pads[i].id));
+    pads[i].csY = new Changeset(padActualLen);
+    console.log('a emis4');
   }
 
   lastSent = t;

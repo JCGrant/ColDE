@@ -1,7 +1,7 @@
 from flask import request, copy_current_request_context
 from flask_socketio import send, emit, join_room, leave_room
 from app import socketio, db
-from app.models import Pad, User, Revision
+from app.models import Pad, User, Revision, Comment
 from threading import Lock
 from math import inf as infinity
 from copy import deepcopy
@@ -72,10 +72,25 @@ def handle(changeset):
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         updateDBPad(changeset)
+        # Add the new comments to DB.
+        if 'comments' in changeset:
+            for code, comment in changeset['comments'].items():
+                newComment = Comment(comment['author'], comment['text'])
+                newComment.pad_id = comment['padId']
+                newComment.code = comment['code']
+                db.session.add(newComment)
+            db.session.commit()
         # Broadcast to all clients.
+        print (str(changeset))
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
+
+@socketio.on('client_server_comment')
+def onNewComment(comment):
+    # Stamp with the client id & send.
+    comment['clientId'] = request.sid
+    emit('server_client_comment', comment, room=comment['projectId'])
 
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset):
@@ -85,6 +100,7 @@ def updateDBPad(changeset):
         return
     # Update pad content.
     pad.text = applyChangeset(pad.text, changeset)
+    print (pad.text)
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
