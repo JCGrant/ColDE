@@ -75,6 +75,7 @@ var runHTML = function() {
     }
     web = preprocess(web, 1);
     if (myPre != null && web != null) {
+      interceptConsoleLogs(myPre);
       myPre.src = "data:text/html;charset=utf-8," + escape(web);
     }
     notClean = false;
@@ -505,7 +506,7 @@ getTextRange = function(padId, from, to) {
 function runJScode() {
     var mypre = document.getElementById("output");
     mypre.innerHTML = "";
-    takeOverConsole(mypre);
+    interceptConsoleLogs(mypre);
     var js = padEditor[displayedPad].getValue();
     var s = document.createElement('script');
     s.textContent = js; 
@@ -515,26 +516,33 @@ function runJScode() {
 
 var lines_modified = 0;
 
-function takeOverConsole(mypre){
-    var console = window.console;
-    if (!console) return;
-    function intercept(method){
-        var original = console[method];
-        console[method] = function(){
-            mypre.innerHTML = mypre.innerHTML + arguments[0] + "\n";
-            if (original.apply){
-                // Do this for normal browsers
-                original.apply(console, arguments);
-            }else{
-                // Do this for IE
-                var message = Array.prototype.slice.apply(arguments).join(' ');
-                original(message);
-            }
-        }
-    }
-    var methods = ['log', 'warn', 'error'];
-    for (var i = 0; i < methods.length; i++)
-        intercept(methods[i]);
+function interceptConsoleLogs(mypre) {
+    (function() {
+      var oldLog = console.log;
+      console.log = function (message) {
+          outf(message);
+          oldLog.apply(console, arguments);
+      };
+    })();
+    // var console = window.console;
+    // if (!console) return;
+    // function intercept(method){
+    //     var original = console[method];
+    //     console[method] = function(){
+    //         mypre.innerHTML = mypre.innerHTML + arguments[0] + "\n";
+    //         if (original.apply){
+    //             // Do this for normal browsers
+    //             original.apply(console, arguments);
+    //         }else{
+    //             // Do this for IE
+    //             var message = Array.prototype.slice.apply(arguments).join(' ');
+    //             original(message);
+    //         }
+    //     }
+    // }
+    // var methods = ['log', 'warn', 'error'];
+    // for (var i = 0; i < methods.length; i++)
+    //     intercept(methods[i]);
 }
 
 function restoreConsole(){
