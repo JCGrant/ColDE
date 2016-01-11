@@ -117,13 +117,19 @@
             {% endfor %}
           </ul>
         </div>
-        <div id="editorview" class="col-md-10">
+        <div id="editorview" class="col-md-8">
           <div id="editorAreas"></div>
           <pre id="output" ></pre> 
           <div id="mycanvas" ></div>
         </div>
         <div id="frameview">
-          <!-- <iframe scrolling="yes" sandbox="" class="col-md-5" id="webview"></iframe> -->
+        </div>
+        <div class="col-md-2">
+          <ul id="messages"></ul>
+          <form id="chat" action="">
+            <input autocomplete="off" />
+            <button>Send</button>
+          </form>
         </div>
       </div>
     </div>
@@ -155,6 +161,9 @@
               'text': htmlDecode(`{{ pad.text|e }}`)
             });
         {% endfor %}
+    </script>
+    <script>
+      var current_user = "{{ current_user.username }}";
     </script>
     <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/select2.full.min.js"></script>
