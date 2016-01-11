@@ -1,3 +1,23 @@
+function runChooseButton() {
+  var split = getCurrentPad().split(".");
+  var ext = "";
+  
+  if(split[1]) {
+    ext = split[1];
+  }
+  $("#runButton").click(runChooseButton);
+  switch(ext) {
+    case "js":
+      runJScode()
+      break;
+    case "py":
+      runit()
+      break;
+    case "html":
+      language = "htmlmixed"
+      break;
+  }
+}
 function createEditor(filename) {
   var language = ""
   var split = filename.split(".");
@@ -6,15 +26,13 @@ function createEditor(filename) {
   if(split[1]) {
     ext = split[1];
   }
-
+  $("#runButton").click(runChooseButton);
   switch(ext) {
     case "js":
       language = "javascript"
-      $("#runButton").click(runJScode);
       break;
     case "py":
       language = "python"
-       $("#runButton").click(runit);
       break;
     case "html":
       language = "htmlmixed"
@@ -35,8 +53,8 @@ function createEditor(filename) {
   });
 
   if(ext == "html") {
-      // Run HTML function.
     editor.on('change', function runHTML() {
+      // Run HTML function.
       var web = editor.getValue();
       var myPre = document.getElementById("webview");
       if (typeof(preprocess) == 'undefined') {
@@ -47,7 +65,9 @@ function createEditor(filename) {
         myPre.src = "data:text/html;charset=utf-8," + escape(web);
       }
     });
-  }
+  } 
+
+
   return editor;
 }
 
