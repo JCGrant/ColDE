@@ -40,16 +40,18 @@
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
               <h4 class="modal-title" id="newProjectModalLabel">New Project</h4>
             </div>
-            <div class="modal-body">
-                  <div class="form-group">
-                      <label for="name">Please choose a name for the project:</label>
-                      <input id="projectName" class="form-control" type="text" placeholder="Project Name">
-                  </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="createNewProject()">Done</button>
-            </div>
+            <form action='project/new'>
+              <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Please choose a name for the project:</label>
+                        <input id="projectName" class="form-control" type="text" placeholder="Project Name" name='title'>
+                    </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <input type="submit" class="btn btn-primary" value="Done">
+              </div>
+            </form>
           </div>
         </div>
       </div>
