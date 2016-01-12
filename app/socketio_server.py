@@ -26,7 +26,6 @@ def clientConnect(projectId):
 
 @socketio.on('clientDisconnect')
 def clientDisconnect(pads):
-    print ("serverDisonnect")
     projectId = pads['projectId']
     # Remove user from dictionary and room.
     project_users[projectId].remove(request.sid)
@@ -81,7 +80,6 @@ def handle(changeset):
                 db.session.add(newComment)
             db.session.commit()
         # Broadcast to all clients.
-        print (str(changeset))
         emit('server_client_changeset', changeset, room=changeset['projectId'])
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
@@ -104,7 +102,6 @@ def updateDBPad(changeset):
         return
     # Update pad content.
     pad.text = applyChangeset(pad.text, changeset)
-    print (pad.text)
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
@@ -136,8 +133,6 @@ def applyChangeset(text, changeset):
 
 def follow(this, otherCs):
     assert this['baseLen'] == otherCs['baseLen']
-    print (str(this))
-    print (str(otherCs))
     # Initialise the resulting cs.
     resultCs = {}
     resultCs['ops'] = []
