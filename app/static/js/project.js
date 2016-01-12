@@ -36,17 +36,3 @@ function closeConsole() {
     editorview.className = "col-md-10";
   }
 }
-
-var $newUserSelect = $('#newUserSelect');
-$newUserSelect.select2();
-
-function addNewUsers() {
-  var usernames = $newUserSelect.val() || [];
-  var fields = '';
-  usernames.forEach(function(username) {
-    fields += 'username=' + username + '&';
-  });
-	window.location.href = '/project/' + projectId + '/add_users?' + fields;
-}
-
-// $('#newUserButton').click(addNewUsers);

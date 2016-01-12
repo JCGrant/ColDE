@@ -89,18 +89,20 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title" id="newUserModalLabel">New User</h4>
           </div>
-          <div class="modal-body">
-              <label for="name">Please select the users you want to add</label><br>
-              <select id="newUserSelect" multiple style="width: 100%;">
-              {% for user in users %}
-                <option value='{{ user.username }}'>{{ user.username }}</option>
-              {% endfor %}
-              </select>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id='newUserButton' type="button" class="btn btn-primary">Done</button>
-          </div>
+          <form action='add_users'>
+            <div class="modal-body">
+                <label for="name">Please select the users you want to add</label><br>
+                <select id="newUserSelect" multiple style="width: 100%;" name='username'>
+                {% for user in users %}
+                  <option value='{{ user.username }}'>{{ user.username }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
         </div>
       </div>
     </div>
