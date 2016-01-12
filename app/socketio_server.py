@@ -64,6 +64,9 @@ def handle(changeset):
                 break
         # Fetch current revision.
         crtRev = changeset['revId']
+        print ('current cs is ' + changeset)
+        if apply_from != len(revs):
+            print (revisions[project_id][pad_id][(apply_from-1):len(revs)])
         for i in range(apply_from, len(revs)):
             print ('applied follow')
             changeset = follow(revs[i].changeset, changeset)
