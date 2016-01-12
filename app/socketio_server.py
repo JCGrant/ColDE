@@ -59,12 +59,12 @@ def handle(changeset):
         # Follow the changeset by all revisions not known by that user.
         revs = revisions[project_id][pad_id]
         apply_from = len(revs)
-        for i in range(len(revs) - 1, 0, -1):
+        for i in range(len(revs) -1, 0, -1):
             if changeset['baseRev'] == revs[i].id:
                 apply_from = i
                 break
-        for i in range(apply_from, len(revs)):
-            changeset = follow(revs[i].changeset, changeset)
+        # for i in range(apply_from, len(revs)):
+        #     changeset = follow(revs[i].changeset, changeset)
 
         # Create new revision out of this changeset.
         revisions[project_id][pad_id].append(Revision(next_revision, changeset))
