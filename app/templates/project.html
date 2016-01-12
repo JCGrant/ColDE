@@ -59,6 +59,29 @@
       </div>
     </nav>
 
+    <div class="modal fade" id="newPadModal" tabindex="-1" role="dialog" aria-labelledby="newPadModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newPadModalLabel">New File</h4>
+          </div>
+          <form action='pad/new'>
+            <div class="modal-body">
+                  <div class="form-group">
+                      <label for="name">Please choose a name for the file:</label>
+                      <input id="padName" class="form-control" type="text" placeholder="Filename" name='filename'>
+                  </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -77,27 +100,6 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             <button id='newUserButton' type="button" class="btn btn-primary">Done</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="newPadModal" tabindex="-1" role="dialog" aria-labelledby="newPadModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="newPadModalLabel">New File</h4>
-          </div>
-          <div class="modal-body">
-                <div class="form-group">
-                    <label for="name">Please choose a name for the file:</label>
-                    <input id="padName" class="form-control" type="text" placeholder="Filename">
-                </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id='createNewPadButton' type="button" class="btn btn-primary">Done</button>
           </div>
         </div>
       </div>

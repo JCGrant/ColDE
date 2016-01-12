@@ -1,10 +1,3 @@
-function createNewPad() {
-	var padName = document.getElementById("padName").value;
-	window.location.href = '/project/' + projectId + '/pad/new?filename=' + padName;
-}
-
-$('#createNewPadButton').click(createNewPad);
-
 webViewOpen = false;
 var webViewToggleButton = $("#toggleWebView");
 
@@ -56,4 +49,4 @@ function addNewUsers() {
 	window.location.href = '/project/' + projectId + '/add_users?' + fields;
 }
 
-$('#newUserButton').click(addNewUsers);
+// $('#newUserButton').click(addNewUsers);
