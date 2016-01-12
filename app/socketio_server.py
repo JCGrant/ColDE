@@ -53,21 +53,20 @@ def handle(changeset):
         if project_id not in revisions:
             revisions[project_id] = {}
         if pad_id not in revisions[project_id]:
-            revisions[project_id][pad_id] = [Revision(0, None)]
-        next_revision = revisions[project_id][pad_id][-1].id + 1
+            revisions[project_id][pad_id] = [Revision('0', None)]
         
         # Follow the changeset by all revisions not known by that user.
         revs = revisions[project_id][pad_id]
         apply_from = len(revs)
-        for i in range(len(revs) -1, 0, -1):
-            if changeset['baseRev'] == revs[i].id:
+        for i in range(len(revs), 0, -1):
+            if changeset['baseRev'] == revs[i - 1].id:
                 apply_from = i
                 break
-        # for i in range(apply_from, len(revs)):
-        #     changeset = follow(revs[i].changeset, changeset)
-
+        for i in range(apply_from, len(revs)):
+            print ('applied follow')
+            changeset = follow(revs[i].changeset, changeset)
         # Create new revision out of this changeset.
-        revisions[project_id][pad_id].append(Revision(next_revision, changeset))
+        revisions[project_id][pad_id].append(Revision(changeset['revId'], changeset))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         updateDBPad(changeset)

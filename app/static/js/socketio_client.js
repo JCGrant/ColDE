@@ -60,7 +60,7 @@ for (var i = 0; i < pads.length; ++i) {
   // Unsubmitted local composition of changes.
   pads[i].csY = new Changeset(pads[i].text.length);
   // The last revision received from server.
-  pads[i].baseRev = 0;
+  pads[i].baseRev = '0';
   // Add the current pad in the mapping by id.
   padById[pads[i].id] = pads[i];
 }
@@ -95,7 +95,7 @@ socket.on('server_client_changeset', function(cs) {
   // is not the one we display.
   processExternalChangeset(cs['padId'], D);
   // Update base changeset.
-  pad.baseRev = cs['baseRev'];
+  pad.baseRev = cs['revId'];
 });
 
 // TODO(mihai): check how to use a socket.io callback for this.
@@ -214,7 +214,11 @@ var maybeSend = function() {
       delete codeToComment[pads[i].id];
     }
     console.log('sends ' + JSON.stringify(pads[i].csY));
+    // Assing this commit a revision id.
+    pads[i].csY['revId'] = randomString(10);
+    // Emit.
     socket.emit('client_server_changeset', pads[i].csY);
+    pads[i].baseRev = pads[i].csY['revId'];
     console.log('a emis');
     // Compute pad len by adding comments len.
     var expanded = 0;

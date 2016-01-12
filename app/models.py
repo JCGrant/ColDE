@@ -101,3 +101,5 @@ class Revision:
     def __init__(self, id, changeset):
         self.id = id
         self.changeset = changeset
+    def __repr__(self):
+        return '' + str(self.id) + ' ' + str(self.changeset)
