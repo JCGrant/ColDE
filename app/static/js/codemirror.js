@@ -1,3 +1,4 @@
+$("#runButton").click(runChooseButton);
 function runChooseButton() {
   var split = getCurrentPad().split(".");
   var ext = "";
@@ -5,7 +6,6 @@ function runChooseButton() {
   if(split[1]) {
     ext = split[1];
   }
-  $("#runButton").click(runChooseButton);
   switch(ext) {
     case "js":
       runJScode()
@@ -26,7 +26,6 @@ function createEditor(filename) {
   if(split[1]) {
     ext = split[1];
   }
-  $("#runButton").click(runChooseButton);
   switch(ext) {
     case "js":
       language = "javascript"
@@ -131,7 +130,6 @@ var displayComment = function(comment) {
     'line': comment['line'],
     'ch': comment['ch']
   }
-  console.log('comment is ' + comment['text']);
   var marker = 
     padEditor[comment['padId']].setBookmark(position, {'widget' : element});
   myMarkers.push([marker, true]);
@@ -147,7 +145,6 @@ var displayComment = function(comment) {
 var detectComments = function(editor) {
   var content = editor.getValue('');
   var p = content.length;
-  console.log('avem ' + content);
   while (true) {
     // Search for the next possible beginning.
     p = content.lastIndexOf('&<!', p);
@@ -165,7 +162,6 @@ var detectComments = function(editor) {
       var comment = allComments[commentCode];
       comment['line'] = start['line'];
       comment['ch'] = start['ch'];
-      console.log('found on ' + comment['line'] + ' ' + comment['ch']);
       displayComment(comment);
       // Update pointer to skip the found range.
       p -= 18;
@@ -185,14 +181,11 @@ var padEditor = {};
 var notClean = false;
 // Create code mirror instances for all pads.
 // TODO(mihai): remove this dependency.
-console.log('length is ' + pads.length);
 for (var i = 0; i < pads.length; ++i) {
-  console.log('before iniit ' + i);
   // Create holder text area.
   var textArea = document.createElement('textarea');
   editorAreas.appendChild(textArea);
   padTextArea[pads[i].id] = textArea;
-  console.log('initialise ' + pads[i].id);
   // Create the editor instance.
   var editor = createEditor(pads[i]["filename"])
   textArea.nextSibling.style.display = 'none';
@@ -238,7 +231,6 @@ var updateDisplayedPad = function(padId) {
     padTextArea[displayedPad].nextSibling.style.display = 'none';
   }
   if (!(padId in padTextArea)) {
-    console.log('cacat ' + padId);
   }
   padTextArea[padId].nextSibling.offsetHeight;
   padTextArea[padId].nextSibling.style.display = 'block';
@@ -295,7 +287,6 @@ var expandEditorComments = function(padId) {
   var editor = padEditor[padId];
   // Traverse markers and replace them with non-zero range.
   var allMarks = editor.getAllMarks();
-  console.log(allMarks.length);
   for (var i = 0; i < allMarks.length; ++i) {
     // Skip update if mark is unexpandable.
     var marker = allMarks[i];
@@ -303,7 +294,6 @@ var expandEditorComments = function(padId) {
       continue;
     }
     var markerPosition = marker.find();
-    console.log(markerPosition);
     editor.replaceRange(Array(21).join('a'), 
       markerPosition, markerPosition, 'aux');
   }
@@ -425,7 +415,6 @@ function joinLines(cm) {
 processExternalChangeset = function(padId, changeset) {
   // Retrieve the editor instance.
   var editor = padEditor[padId];
-  console.log(changeset);
   // Add new comments to allComments.
   if ('comments' in changeset) {
     for (var code in changeset['comments']) {
@@ -436,7 +425,6 @@ processExternalChangeset = function(padId, changeset) {
   editor.operation(function() {
     // Expand code comments to occupy real space in editor.
     expandEditorComments(padId);
-    console.log('after expansion ' + editor.getValue(''));
     // Prepare change application.
     var prevContent = editor.getValue('');
     console.assert(
@@ -463,7 +451,6 @@ processExternalChangeset = function(padId, changeset) {
         contentPointer -= c;
       }
     }
-    console.log('after application ' + editor.getValue(''));
     // Compact code comments to no longer occupy space in editor.
     collapseEditorComments(padId);
     // Expand possible newly added comments.
@@ -567,7 +554,7 @@ function getCurrentPad() {
 
 function runit() {
    lines_modified = 0;
-   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()]);   //TODO need to add current file name
+   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
@@ -589,24 +576,25 @@ function runit() {
    });
 }
 
-function preprocess(text, type, filelist) {
+var stack = [];
+var initialFile;
+function preprocess(text, type, filelist, initial) {
   if(type === 1) {
     var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
     var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*["\']stylesheet["\'][^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
       var filename = /src[\s\t]*=[\s\t]*["'][^"^']*["']/gi.exec(res[0]);
-      console.log(filename);
       if (filename == null) {
         continue;
       }
       filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
       var toReplace = res[0].replace(/src[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
-      indexToAdd = res.index + res[0].length;
+      var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
     while((res = regex2.exec(text)) !== null) {
@@ -616,35 +604,67 @@ function preprocess(text, type, filelist) {
       var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
       toReplace = toReplace.replace(/href[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       toReplace = toReplace.replace('link', 'style');
-      indexToAdd = res.index + res[0].length;
+      var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      var text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
   } else {
-    var regex = new RegExp ('.*import.*[\\n\\r]', 'g');
+    if(initial === 1) {
+      initialFile = filelist.pop();
+    }
+    console.log(initialFile);
+    var regex = new RegExp ('import[^;\\n\\r]*', 'g');
     //TODO from X import Y;
     var res;
     while((res = regex.exec(text)) !== null) {
-      var filename = res[0].slice(6);
+      var classname = res[0].split(/\s+/);
+      classname = classname.filter(Boolean).pop();
+      classname = classname.replace(/\r?\n|\r/, '');
+      classname = classname.replace(/\s/g, '');
+      var filename = res[0].split(/\s+/);
+      filename = filename.filter(Boolean)[1];
+      filename = filename.replace(/[\s\t]+as.*/, '');
       filename = filename.replace(/\s/g, '');
+      filename = filename.replace('.', '/');
       filename = filename + ".py";
-      indexToAdd = res.index;
-      indexAfterAdd = indexToAdd + res[0].length;
-      if(filelist.indexOf(filename) > -1) {
-        var text = preprocess(text.slice(0, indexToAdd) + text.slice(indexAfterAdd), 2, filelist);
-      } else {
-        filelist.push(filename);
-        if (findPad(filename) == null)
-          continue;
-        var to_add = preprocess(findPad(filename), 2, filelist)
-        lines_modified = count_lines(to_add) + lines_modified + 1;
-        var text = text.slice(0, indexToAdd) + to_add + "\n" + text.slice(indexAfterAdd);
+      var indexToAdd = res.index;
+      var indexAfterAdd = indexToAdd + res[0].length;
+      if(text.slice(indexAfterAdd, indexAfterAdd + 1) === ';'){
+        indexAfterAdd += 1;
       }
+      if(filename === initialFile) {
+        var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd);
+        continue;
+      }
+      stack.push(classname);
+      if(filelist.indexOf(classname) > -1) {
+        var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
+      } else {
+        filelist.push(classname);
+        if (findPad(filename) == null) {
+          stack.pop();
+          continue;
+        }
+        var to_add = preprocess(findPad(filename), 2, filelist, 0)
+        lines_modified = count_lines(to_add) + lines_modified + 3;
+        text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
+        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
+      }
+      console.log(text);
+      stack.pop();
     }
   }
   return text; 
+}
+
+function identPython(str) {
+  str = str.split(/\n\r|\r|\n/)
+  for( var i = 0; i < str.length; i++ ) {
+    str[i] = '    ' + str[i]; 
+  }
+  return str.join('\n');
 }
 
 function count_lines(str) {
