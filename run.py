@@ -2,4 +2,7 @@
 
 from app import app, socketio
 
-socketio.run(app)
+try:
+	socketio.run(app)
+except Exception as e:
+	print str(e)
