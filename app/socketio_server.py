@@ -62,11 +62,13 @@ def handle(changeset):
             if changeset['baseRev'] == revs[i - 1].id:
                 apply_from = i
                 break
+        # Fetch current revision.
+        crtRev = changeset['revId']
         for i in range(apply_from, len(revs)):
             print ('applied follow')
             changeset = follow(revs[i].changeset, changeset)
         # Create new revision out of this changeset.
-        revisions[project_id][pad_id].append(Revision(changeset['revId'], changeset))
+        revisions[project_id][pad_id].append(Revision(crtRev, changeset))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         updateDBPad(changeset)
@@ -232,3 +234,4 @@ def compress(this):
         compressedOps = [['=', this.baseLen]]
     # Use the compressed ops, instead of the initial ones.
     resultCs['ops'] = compressedOps
+    return resultCs
