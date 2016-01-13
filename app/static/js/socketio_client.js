@@ -89,11 +89,11 @@ socket.on('server_client_changeset', function(cs) {
   pad.csY = nextY;
   // Copy the list of received comments to D.
   D['comments'] = cs['comments'];
+  // Update base changeset.
+  pad.baseRev = cs['revId'];
   // Apply D changeset on current code mirror view even if the updated pad
   // is not the one we display.
   processExternalChangeset(cs['padId'], D);
-  // Update base changeset.
-  pad.baseRev = cs['revId'];
 });
 
 // TODO(mihai): check how to use a socket.io callback for this.
