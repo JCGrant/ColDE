@@ -26,15 +26,20 @@ function createEditor(filename) {
   if(split[1]) {
     ext = split[1];
   }
+  var tabSize = 2
   switch(ext) {
     case "js":
       language = "javascript"
       break;
     case "py":
       language = "python"
+      tabSize = 4
       break;
     case "html":
       language = "htmlmixed"
+      break;
+    case "css":
+      language = "css"
       break;
   }
 
@@ -48,7 +53,7 @@ function createEditor(filename) {
     theme: 'monokai',
     foldGutter: true,
     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    tabSize: 2
+    tabSize: tabSize,
   });
 
   return editor;
