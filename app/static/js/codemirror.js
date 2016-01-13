@@ -646,16 +646,17 @@ function preprocess(text, type, filelist, initial) {
         var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
       } else {
         filelist.push(classname);
-        if (findPad(filename) == null) {
+        if (findPad('/' + filename) == null) {
           stack.pop();
           continue;
         }
-        var to_add = preprocess(findPad(filename), 2, filelist, 0)
+        var to_add = preprocess(findPad('/' + filename), 2, filelist, 0)
         lines_modified = count_lines(to_add) + lines_modified + 3;
         text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
         text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
+      console.log(text);
     }
   }
   return text; 
