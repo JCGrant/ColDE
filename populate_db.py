@@ -19,34 +19,34 @@ pads = [
 """<html>
   <head>
     <title>Test Site</title>
-    <link rel='stylesheet' href='style.css'>
+    <link rel='stylesheet' href='/css/style.css'>
   </head>
   <body>
     <h1>Test Site</h1>
     <p>Hey there!</p>
-    <script src='script.js'></script>
+    <script src='/js/script.js'></script>
   </body>
 </html>"""),
 
-    ('/script.js', 1,
+    ('/js/script.js', 1,
 """var x = 2;
 var y = 3;
 console.log(x + y);"""),
 
-    ('/style.css', 1,
+    ('/css/style.css', 1,
 """body {
   background: red;
 }"""),
 
     ('/app.py', 2,
-"""import helpers
+"""import helpers.fib as fib
 def fibs(n):
     for i in range(n):
-        print(helpers.fib(i))
+        print(fib.fib(i))
 
 fibs(10)"""),
 
-    ('/helpers.py', 2,
+    ('/helpers/fib.py', 2,
 """def fib(n):
     a, b = 1, 1
     for i in range(n):
