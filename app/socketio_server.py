@@ -66,17 +66,12 @@ def handle(changeset):
                 break
         # Fetch current revision.
         crtRev, baseRev = changeset['revId'], changeset['baseRev']
-        if apply_from != len(revs):
-            print ('current cs is ' + str(changeset))
-            print (str(revisions[project_id][pad_id][(apply_from-1):len(revs)]))
         for i in range(apply_from, len(revs)):
-            print ('applied follow')
             changeset = follow(revs[i].changeset, changeset)
         # Update base rev.
         changeset['baseRev'] = baseRev
         # Create new revision out of this changeset.
         revisions[project_id][pad_id].append(Revision(crtRev, changeset))
-        print ('important revs: ' + str(revisions[project_id][pad_id][apply_from : ]))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         changeset['revId'] = crtRev
@@ -93,7 +88,6 @@ def handle(changeset):
         changeset['clientId'] = request.sid
         # Broadcast to all clients.
         emit('server_client_changeset', changeset, room=changeset['projectId'])
-        print ('------------------------------------------------')
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
 
@@ -228,14 +222,11 @@ def follow(this, otherCs):
     for i in range(0, len(resultCs['ops'])):
         if resultCs['ops'][i][0] == '=' or resultCs['ops'][i][0] == '+':
             resultCs['newLen'] += resultCs['ops'][i][1]
-    print ('follow on ' + str(this) + ' --- AND --- ' + str(otherCs) + ' RETURNS ' + str(resultCs))
     return resultCs
     
 def compress(this):
-    print ('compress called on ' + str(this))
     # Initialise the resulting cs.
     resultCs = deepcopy(this)
-    print ('deep copied ' + str(resultCs))
     # Array of compressed ops.
     compressedOps = []
     i = 0
