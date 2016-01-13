@@ -158,7 +158,8 @@
             pads.push({
               'id': {{ pad.id }},
               'filename': '{{ pad.filename|e }}',
-              'text': htmlDecode(`{{ pad.text|e }}`)
+              'text': htmlDecode(`{{ pad.text|e }}`),
+              'baseRev': '{{ pad.last_revision }}'
             });
         {% endfor %}
     </script>

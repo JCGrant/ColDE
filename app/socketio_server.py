@@ -74,7 +74,7 @@ def handle(changeset):
         revisions[project_id][pad_id].append(Revision(crtRev, changeset))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
-        updateDBPad(changeset)
+        updateDBPad(changeset, crtRev)
         # Add the new comments to DB.
         if 'comments' in changeset:
             for code, comment in changeset['comments'].items():
@@ -99,13 +99,15 @@ def chatMessage(message):
     emit('chat message', message, broadcast=True)
 
 # Updates the entries in the DB according to this info.
-def updateDBPad(changeset):
+def updateDBPad(changeset, crtRev):
     pad = Pad.query.filter_by(project_id=changeset['projectId']).\
         filter_by(id=changeset['padId']).first()
     if not pad:
         return
-    # Update pad content.
+    # Update pad text content.
     pad.text = applyChangeset(pad.text, changeset)
+    # Update code of last revision.
+    pad.last_revision = crtRev
     # Write to DB.
     db.session.add(pad)
     db.session.commit()

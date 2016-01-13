@@ -59,8 +59,6 @@ for (var i = 0; i < pads.length; ++i) {
   pads[i].csX = new Changeset(pads[i].text.length);
   // Unsubmitted local composition of changes.
   pads[i].csY = new Changeset(pads[i].text.length);
-  // The last revision received from server.
-  pads[i].baseRev = '0';
   // Add the current pad in the mapping by id.
   padById[pads[i].id] = pads[i];
 }
