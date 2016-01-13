@@ -1,42 +1,18 @@
-
-
-/* Move down content because we have a fixed navbar that is 50px tall */
 body {
   padding-top: 50px;
 }
 
-
-/*
- * Top navigation
- * Hide default border to remove 1px line.
- */
 .navbar-fixed-top {
   border: 0;
 }
 
-
-
-/*
- * CodeMirror custom css
- */ 
-
-.CodeMirror {
-  height: 800px;
+#messages { list-style-type: none; margin: 0; padding: 0;
+  height: calc(100vh - 50px - 34px);
+  overflow: auto;
 }
-
-#webview {
-  height: 1000px;
-}
-
-/* Chat */
-#chat { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-#chat input { border: 0; padding: 10px; width: 9%; margin-right: .5%; }
-#chat button { width: 5%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-#messages { list-style-type: none; margin: 0; padding: 0; }
 #messages li { padding: 5px 10px; }
 #messages li:nth-child(odd) { background: #eee; }
 
-/* Messages */
 .messages {
   list-style-type: circle;
   margin: 0;
@@ -47,4 +23,24 @@ body {
 }
 .messages > li:nth-child(odd) {
   background: #eee;
+}
+
+#editorview {
+  height: calc(100vh - 50px);
+}
+
+#editorAreas {
+  height: 85%;
+}
+
+#output {
+  height: 15%;
+}
+
+.CodeMirror{
+  height: 100%;
+}
+
+#output {
+  margin: 0;
 }
