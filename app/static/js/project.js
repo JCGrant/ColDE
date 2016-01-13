@@ -17,9 +17,9 @@ function showConsole() {
   if(document.getElementById("webview") == null) {
     var editorview = document.getElementById("editorview");
     var frameview = document.getElementById("frameview");
-    editorview.className = "col-md-5";
+    editorview.className = "col-xs-4 col-lg-5";
     var frame = document.createElement("iframe");
-    frame.className = "col-md-5";
+    frame.className = "col-xs-4 col-lg-5";
     frame.scrolling = "yes";
     // frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
     frame.id = "webview";
@@ -33,6 +33,6 @@ function closeConsole() {
     var frameview = document.getElementById("frameview");
     var child = document.getElementById("webview");
     frameview.removeChild(webview);
-    editorview.className = "col-md-10";
+    editorview.className = "col-xs-8 col-lg-10";
   }
 }
