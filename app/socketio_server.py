@@ -3,7 +3,7 @@ from flask_socketio import send, emit, join_room, leave_room
 from app import socketio, db
 from app.models import Pad, User, Revision, Comment
 from threading import Lock
-#from math import inf as infinity
+from math import inf as infinity
 from copy import deepcopy
 
 # Lock to ensure no more than one client update is processed at a time.
@@ -162,8 +162,8 @@ def follow(this, otherCs):
     if otherCs['ops'][0][0] != '+':
         endp2 += otherCs['ops'][0][1]
     # Add infinite length sentinels, to avoid some particular cases.
-    this['ops'].append(['', 20000000000])
-    otherCs['ops'].append(['', 20000000000])
+    this['ops'].append(['', infinity])
+    otherCs['ops'].append(['', infinity])
     # Perform the merge.
     while p1 < len(this['ops']) - 1 or p2 < len(otherCs['ops']) - 1: 
         # Two pluses => keep insertions in A, add insertions from B.
