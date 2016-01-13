@@ -68,6 +68,7 @@ socket.on('server_client_changeset', function(cs) {
   if (cs['clientId'] === userId) {
     return;
   }
+  console.log('Received ' + JSON.stringify(cs));
 
   // Create changeset.
   var changeset = new Changeset(0);
@@ -83,6 +84,10 @@ socket.on('server_client_changeset', function(cs) {
   var nextX = changeset.mergeChangeset(pad.csX);
   var nextY = pad.csX.mergeChangeset(changeset).mergeChangeset(pad.csY);
   var D     = pad.csY.mergeChangeset(pad.csX.mergeChangeset(changeset));
+  console.log('nextA becomes ' + JSON.stringify(nextA));
+  console.log('nextA becomes ' + JSON.stringify(nextX));
+  console.log('nextA becomes ' + JSON.stringify(nextY));
+  console.log('nextA becomes ' + JSON.stringify(D));
   // Update changesets.
   pad.csA = nextA;
   pad.csX = nextX;
@@ -193,18 +198,12 @@ var maybeSend = function() {
     if (!pads[i].csX.isIdentity() || pads[i].csY.isIdentity()) {
       continue;
     }
-    console.log('not identity');
-    console.log('cs x is ' + pads[i].csX);
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
-    console.log('base rev becomes ' + pads[i].csY['baseRev'] + ' ' + pads[i].baseRev);
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
-    console.log('cs y is ' + pads[i].csY);
     // Add possible comments.
-    console.log('found: ');
     if (pads[i].id in codeToComment) {
-      console.log('enters: ');
       pads[i].csY['comments'] = {};
       for (var code in codeToComment[pads[i].id]) {
         var comment = codeToComment[pads[i].id][code];
@@ -212,31 +211,23 @@ var maybeSend = function() {
       }
       delete codeToComment[pads[i].id];
     }
-    console.log('sends ' + JSON.stringify(pads[i].csY));
     // Assing this commit a revision id.
     pads[i].csY['revId'] = randomString(10);
     // Emit.
-    console.log('before send base rev ' + pads[i].csY['baseRev']);
     socket.emit('client_server_changeset', pads[i].csY);
     pads[i].baseRev = pads[i].csY['revId'];
-    console.log('a emis');
     // Compute pad len by adding comments len.
     var expanded = 0;
     var allMarks = padEditor[pads[i].id].getAllMarks();
-    console.log(i);
     for (var j = 0; j < allMarks.length; ++j) {
       if (!isUnexpandable(allMarks[j])) {
         ++expanded;
       }
     }
-    console.log(i);
-    console.log('a emis2');
     var padActualLen = getTextLength(pads[i].id) + 20 * expanded;
-    console.log('a emis3');
     // Update changesets.
     pads[i].csX = pads[i].csY;
     pads[i].csY = new Changeset(padActualLen);
-    console.log('a emis4');
   }
 
   lastSent = t;
@@ -245,15 +236,17 @@ var maybeSend = function() {
 /**
  * Create the 500ms ticker.
  */
-var sender;
-if (typeof(sender) == 'undefined') {
-  sender = new Worker('countdown.js');
-}
+var sender = new Worker('/static/js/countdown.js');
+
+// Add event listener to the worker.
+sender.onmessage = function(msg) {
+  tick();
+};
 
 /**
  * Called every 500ms.
  */
-tick = function() {
+var tick = function() {
   // Maybe send existing changes to server.
   maybeSend();
   // Maybe refresh HTML display.

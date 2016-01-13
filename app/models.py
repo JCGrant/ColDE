@@ -104,4 +104,5 @@ class Revision:
         self.id = id
         self.changeset = changeset
     def __repr__(self):
-        return '' + str(self.id) + ' ' + str(self.changeset)
+        # return '' + str(self.id) + ' ' + str(self.changeset)
+        return 'id: ' + str(self.id) + '---' + ' baseLen ' + str(self.changeset['baseLen']) + ' newLen ' + str(self.changeset['newLen']) + ' baseRev ' + str(self.changeset['baseRev'])

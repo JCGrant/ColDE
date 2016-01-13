@@ -38,8 +38,6 @@ def clientDisconnect(pads):
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
-    # Include the id of the client that generated the changeset.
-    changeset['clientId'] = request.sid
     # Fetch project and pad ids.
     project_id = changeset['projectId']
     pad_id = changeset['padId']
@@ -62,16 +60,22 @@ def handle(changeset):
             if changeset['baseRev'] == revs[i - 1].id:
                 apply_from = i
                 break
+        for i in range(apply_from, len(revs)):
+            if changeset['baseLen'] == revs[i].changeset['newLen']:
+                apply_from = i
         # Fetch current revision.
-        crtRev = changeset['revId']
+        crtRev, baseRev = changeset['revId'], changeset['baseRev']
         if apply_from != len(revs):
             print ('current cs is ' + str(changeset))
             print (str(revisions[project_id][pad_id][(apply_from-1):len(revs)]))
         for i in range(apply_from, len(revs)):
             print ('applied follow')
             changeset = follow(revs[i].changeset, changeset)
+        # Update base rev.
+        changeset['baseRev'] = baseRev
         # Create new revision out of this changeset.
         revisions[project_id][pad_id].append(Revision(crtRev, changeset))
+        print ('important revs: ' + str(revisions[project_id][pad_id][apply_from : ]))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
         changeset['revId'] = crtRev
@@ -84,8 +88,11 @@ def handle(changeset):
                 newComment.code = comment['code']
                 db.session.add(newComment)
             db.session.commit()
+        # Include the id of the client that generated the changeset.
+        changeset['clientId'] = request.sid
         # Broadcast to all clients.
         emit('server_client_changeset', changeset, room=changeset['projectId'])
+        print ('------------------------------------------------')
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
 
