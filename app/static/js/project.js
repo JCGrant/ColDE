@@ -38,4 +38,15 @@ function closeConsole() {
   }
 }
 
-$('#newUserSelect').select2();
+$newUserSelect = $('#newUserSelect');
+$('#newUserButton').click(function() {
+  $.get('/project/' + projectId + '/users_not_in_project/', function(data) {
+    $options = ''
+    data.users.forEach(function(user) {
+      $options += '<option>' + user.username + '</option>';
+    });
+    $newUserSelect.html($options);
+  });
+});
+
+$newUserSelect.select2();
