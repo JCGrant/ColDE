@@ -19,7 +19,7 @@ pads = [
 """<html>
   <head>
     <title>Test Site</title>
-    <link ref='stylesheet' href='style.css'>
+    <link rel='stylesheet' href='style.css'>
   </head>
   <body>
     <h1>Test Site</h1>
@@ -38,17 +38,20 @@ console.log(x + y);"""),
   background: red;
 }"""),
 
-    ('app.py', 2,
-"""# import helpers
-def fib(n):
+    ('helpers.py', 2,
+"""def fib(n):
     a, b = 1, 1
     for i in range(n):
         a, b = b, a + b
     return a"""),
 
-    ('helpers.py', 2,
-"""def fib(x):
-    return x + 1"""),
+    ('app.py', 2,
+"""import helpers
+def fibs(n):
+    for i in range(n):
+        print(helpers.fib(i))
+
+fibs(10)"""),
 ]
 
 for title in projects:
