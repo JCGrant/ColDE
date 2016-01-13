@@ -198,6 +198,7 @@ var maybeSend = function() {
     console.log('cs y is ' + pads[i].csY);
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
+    console.log('base rev is ' + pads[i].baseRev);
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
     // Add possible comments.
