@@ -79,7 +79,7 @@ def project(id):
                            project=project,
                            users=users)
 
-@app.route('/project/<int:id>/pad/new', methods=['GET'])
+@app.route('/project/<int:id>/pad/new/', methods=['GET'])
 @login_required
 def new_pad(id):
     filename = request.args.get('filename', 'new_file')
