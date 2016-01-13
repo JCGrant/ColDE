@@ -610,8 +610,8 @@ function preprocess(text, type, filelist, initial) {
       filename = filename.filter(Boolean)[1];
       filename = filename.replace(/[\s\t]+as.*/, '');
       filename = filename.replace(/\s/g, '');
-      filename = filename.replace('.', '/');
-      filename = filename + ".py";
+      filename = filename.replace(/\./g, '/');
+      filename = '/' + filename + ".py";
       var indexToAdd = res.index;
       var indexAfterAdd = indexToAdd + res[0].length;
       if(text.slice(indexAfterAdd, indexAfterAdd + 1) === ';'){
@@ -619,6 +619,7 @@ function preprocess(text, type, filelist, initial) {
       }
       if(filename === initialFile) {
         var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd);
+        console.log(filename);
         continue;
       }
       stack.push(classname);
@@ -626,18 +627,20 @@ function preprocess(text, type, filelist, initial) {
         var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
       } else {
         filelist.push(classname);
-        if (findPad('/' + filename) == null) {
+        if (findPad(filename) == null) {
+          console.log(filename);
           stack.pop();
           continue;
         }
-        var to_add = preprocess(findPad('/' + filename), 2, filelist, 0)
+        var to_add = preprocess(findPad(filename), 2, filelist, 0)
         lines_modified = count_lines(to_add) + lines_modified + 3;
         text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
         text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
       classregex = new RegExp(classname, 'g');
-      text = text.replace(classregex, classname.replace('.', '_'));
+      text = text.replace(classregex, classname.replace(/\./g, '_'));
+      console.log(text);
     }
   }
   return text; 
