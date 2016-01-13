@@ -37,3 +37,5 @@ function closeConsole() {
     editorview.className = "col-xs-8";
   }
 }
+
+$('#newUserSelect').select2();
