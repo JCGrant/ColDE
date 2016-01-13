@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/CodeMirror/addon/dialog/dialog.css">
     <link rel="stylesheet" href="/static/CodeMirror/theme/monokai.css">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/lib/themes/default/style.min.css"/>
 
     <script src="/static/js/lib/codemirror.js"></script>
     <script src="/static/CodeMirror/addon/hint/javascript-hint.js"></script>
@@ -28,7 +29,7 @@
     <script src="/static/CodeMirror/mode/javascript/javascript.js"></script>
     <script src="/static/CodeMirror/mode/xml/xml.js"></script>
     <script src="/static/CodeMirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="/static/CodeMirror/keymap/sublime.js"></script>  
+    <script src="/static/CodeMirror/keymap/sublime.js"></script> 
 
   </head>
   <body>  
@@ -46,7 +47,6 @@
         </div>
           <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li><a href="#" data-toggle="modal" data-target="#newPadModal">New File <span class="glyphicon glyphicon-file"></span></a></li>
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Web View <span class="glyphicon glyphicon-modal-window"></span></a></li>
             <li><a href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
@@ -58,29 +58,6 @@
         </div>
       </div>
     </nav>
-
-    <div class="modal fade" id="newPadModal" tabindex="-1" role="dialog" aria-labelledby="newPadModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="newPadModalLabel">New File</h4>
-          </div>
-          <form action='pad/new'>
-            <div class="modal-body">
-                  <div class="form-group">
-                      <label for="name">Please choose a name for the file:</label>
-                      <input id="padName" class="form-control" type="text" placeholder="Filename" name='filename'>
-                  </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-primary" value="Done">
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
 
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
       <div class="modal-dialog" role="document">
@@ -109,12 +86,8 @@
 
     <div class="container-fluid">
       <div class="row">
-        <div class="col-xs-2">
-          <ul>
-            {% for pad in project.pads %}
-            <li><a class='pad-button' data-id={{pad.id}} href='#'>{{ pad.filename }}</a></li>
-            {% endfor %}
-          </ul>
+        <div id="container" class="col-xs-2">
+          
         </div>
         <div id="editorview" class="col-xs-8">
           <div id="editorAreas"></div>
@@ -174,5 +147,7 @@
     <script src="/static/js/socketio_client.js"></script>
     <script src="/static/js/codemirror.js"></script>
     <script src="/static/js/editor_events.js"></script>
+    <script src="/static/js/lib/jstree.min.js"></script> 
+    <script src="/static/js/folder_tree.js"></script>
   </body>
 </html>

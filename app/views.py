@@ -3,6 +3,12 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 from app import app, db, lm
 from .models import User, Project, Pad
 from .forms import LoginForm
+import json
+import re
+
+tree_mappings = {}
+tree_mappings[1] = "/"
+files = []
 
 @lm.user_loader
 def load_user(id):
@@ -82,14 +88,42 @@ def project(id):
 @app.route('/project/<int:id>/pad/new', methods=['GET'])
 @login_required
 def new_pad(id):
+    parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
+    #print ("\n\n\n\n\n" + parent + "\n\n\n\n\n")
+    if int(parent) != 1:
+        filename = tree_mappings[int(parent)] + "/" + filename
+    else:
+        filename = tree_mappings[int(parent)] + filename
+
     project = Project.query.get(id)
-    if project is None or g.user not in project.users:
+    if project is None:
         return redirect(url_for('home'))
     pad = Pad(filename, id)
     db.session.add(pad)
     db.session.commit()
-    return redirect(url_for('project', id=id)) 
+    return redirect(url_for('project', id=id))
+
+@app.route('/project/<int:id>/pad/getPad', methods=['GET'])
+@login_required
+def get_pad(id):
+    node_id = request.args.get('id', 1)
+    project = Project.query.get(id)
+    if project is None:
+        return redirect(url_for('home'))
+    filename = tree_mappings[int(node_id)]
+    #print("\n\n\n\n" + filename + "\n\n\n\n")
+    pad = project.pads.filter_by(filename=filename).first()
+    result = {}
+    if pad is None:
+        result["id"] = -1
+        return json.dumps(result) 
+    result["id"] = pad.id
+    result["filename"] = pad.filename
+    result["text"] = pad.text;
+    if filename not in files:
+        result["id"] = -1
+    return json.dumps(result)
 
 @app.route('/project/<int:id>/add_users/', methods=['GET'])
 @login_required
@@ -103,3 +137,125 @@ def add_users(id):
         project.users.append(user)
     db.session.commit()
     return redirect(url_for('project', id=id)) 
+
+@app.route('/project/<int:id>/pad/rename', methods=['GET'])
+@login_required
+def rename_pad(id):
+    parent = request.args.get('parent', 1)
+    filename = request.args.get('filename', 'new_file')
+    new_filename = request.args.get('new', 'new_file')
+
+    is_file = False
+    if "." in new_filename:
+        is_file = True
+
+    if int(parent) != 1:
+        filename = tree_mappings[int(parent)] + "/" + filename
+    else:
+        filename = tree_mappings[int(parent)] + filename
+
+    if int(parent) != 1:
+        new_filename = tree_mappings[int(parent)] + "/" + new_filename
+    else:
+        new_filename = tree_mappings[int(parent)] + new_filename
+    project = Project.query.get(id)
+
+    if is_file:
+        files.append(new_filename)
+
+    #print ("\n\n\n\n\n" + filename + " " + new_filename + "\n\n\n\n\n")
+
+    if project is None:
+        return redirect(url_for('home'))
+    pads_filenames = [pad.filename for pad in project.pads]
+    for pad_name in pads_filenames:
+        result = re.sub(filename, new_filename, pad_name)
+        #print ("\n\n\n\n\n" + pad_name + "\n\n\n\n\n")
+        if result != pad_name:
+            pad = project.pads.filter_by(filename=pad_name).first()
+            pad.filename = new_filename
+    db.session.commit()
+    return redirect(url_for('project', id=project.id))
+
+@app.route('/project/<int:id>/pad/delete', methods=['GET'])
+@login_required
+def delete_pad(id):
+    parent = request.args.get('parent', 1)
+    filename = request.args.get('filename', 'new_file')
+
+    if int(parent) != 1:
+        filename = tree_mappings[int(parent)] + "/" + filename
+    else:
+        filename = tree_mappings[int(parent)] + filename
+
+    project = Project.query.get(id)
+    if project is None:
+        return redirect(url_for('home'))
+
+    pads_filenames = [pad.filename for pad in project.pads]
+    for pad_name in pads_filenames:
+        result = re.match(filename, pad_name)
+        print ("\n\n\n\n\n" + filename + " " + pad_name + "\n\n\n\n\n")
+        if result:
+            pad = project.pads.filter_by(filename=pad_name).first()
+            db.session.delete(pad)
+    db.session.commit()
+    return redirect(url_for('project', id=project.id))
+
+def construct_JSON(filenames):
+    id_count = 1
+    root = {"id": id_count, "text": "Root"}
+    #Keeping the mappings
+    id_count += 1
+    if filenames:
+        root['children'] = []
+    for filename in filenames:
+        paths = filename.split('/')
+        current_path = "/"
+        current_location = root
+        for x in paths:
+            if x:
+                step = {"id": id_count, "text": x}
+                current_path += x
+                if x != paths[len(paths) - 1]:
+                    current_path += "/"
+                else:
+                    if "." in x:
+                        files.append(current_path)
+                        step["icon"] = "glyphicon glyphicon-file"
+                        step["type"] = "file"
+                    else:
+                        step["type"] = "folder"
+
+                tree_mappings[id_count] = current_path 
+                id_count += 1
+                exists = False
+                if 'children' not in current_location:
+                    current_location['children'] = []
+                    current_location['children'].append(step)
+                else:
+                    for dicts in current_location['children']:
+                        if dicts['text'] == x:
+                            current_location = dicts
+                            exists = True
+                            break
+                    if not exists:
+                        current_location['children'].append(step)
+
+                ''' print ("\n\n\n\n\n\n")
+                print (json.dumps(current_location))
+                print("\n\n\n\n\n\n\n")
+                '''
+
+                if x != paths[len(paths) - 1] and not exists:
+                    current_location = current_location['children']
+                    current_location = current_location[len(current_location) - 1]
+    return [root]
+
+@app.route('/project/<int:id>/filesJSON', methods=['GET'])
+@login_required
+def files_JSON(id):
+    project = Project.query.get(id)
+    pads_filenames = [pad.filename for pad in project.pads]
+    result = construct_JSON(pads_filenames)
+    return json.dumps(result)
