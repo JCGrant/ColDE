@@ -229,14 +229,15 @@ def compress(this):
     print ('deep copied ' + str(resultCs))
     # Array of compressed ops.
     compressedOps = []
-    for i in range(0, len(this['ops'])):
+    i = 0
+    while i < len(this['ops']):
         # Compute maximal segment with the same operation.
         j, sum = i, 0
         while j < len(this['ops']) and this['ops'][j][0] == this['ops'][i][0]:
             sum += this['ops'][j][1]
             j += 1
         compressedOps.append([this['ops'][i][0], sum])
-        i = j - 1
+        i = j
 
     if len(compressedOps) == 0:
         compressedOps = [['=', this.baseLen]]
