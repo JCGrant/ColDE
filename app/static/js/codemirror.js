@@ -559,7 +559,7 @@ function runit() {
    mypre.innerHTML = ''; 
    Sk.pre = "output";
    Sk.configure({output:outf, read:builtinRead}); 
-   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'output';
+   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
    var myPromise = Sk.misceval.asyncToPromise(function() {
         return Sk.importMainWithBody("<stdin>", false, prog, true);
    });
@@ -573,6 +573,8 @@ function runit() {
          outf(err.toString());
        }
    });
+   showConsole();
+   $('#frameview').addClass("col-xs-4")
 }
 
 var stack = [];

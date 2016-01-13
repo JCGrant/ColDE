@@ -1,4 +1,4 @@
-from flask import render_template, redirect, flash, url_for, g, request
+from flask import render_template, redirect, flash, url_for, g, request, jsonify
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
 from .models import User, Project, Pad
@@ -80,12 +80,10 @@ def project(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
-    users = [u for u in User.query.all() if u not in project.users]
     return render_template('project.html', 
-                           project=project,
-                           users=users)
+                           project=project)
 
-@app.route('/project/<int:id>/pad/new', methods=['GET'])
+@app.route('/project/<int:id>/pad/new/', methods=['GET'])
 @login_required
 def new_pad(id):
     parent = request.args.get('parent', 1)  
@@ -124,6 +122,22 @@ def get_pad(id):
     if filename not in files:
         result["id"] = -1
     return json.dumps(result)
+
+@app.route('/project/<int:id>/users_not_in_project/')
+@login_required
+def get_users(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    users = [u for u in User.query.all() if u not in project.users]
+    user_dicts = {'users':
+        [
+            {
+                'id': u.id,
+                'username': u.username
+            } for u in users]
+    }
+    return jsonify(user_dicts)
 
 @app.route('/project/<int:id>/add_users/', methods=['GET'])
 @login_required

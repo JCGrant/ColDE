@@ -48,8 +48,8 @@
           <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
-            <li><a id="toggleWebView" href="#">Open Web View <span class="glyphicon glyphicon-modal-window"></span></a></li>
-            <li><a href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
+            <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
+            <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
             <li><a id="clickAddComment" href="#">Add Comment</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -70,9 +70,6 @@
             <div class="modal-body">
                 <label for="name">Please select the users you want to add</label><br>
                 <select id="newUserSelect" multiple style="width: 100%;" name='username'>
-                {% for user in users %}
-                  <option value='{{ user.username }}'>{{ user.username }}</option>
-                {% endfor %}
                 </select>
             </div>
             <div class="modal-footer">
@@ -91,10 +88,9 @@
         </div>
         <div id="editorview" class="col-xs-8">
           <div id="editorAreas"></div>
-          <pre id="output"></pre> 
+          <pre id="output">Output</pre> 
         </div>
         <div id="frameview"></div>
-        <div id="mycanvas"></div>
         <div class="col-xs-2">
           <ul id="messages"></ul>
           <form id="chat" action="">
@@ -128,7 +124,8 @@
             pads.push({
               'id': {{ pad.id }},
               'filename': '{{ pad.filename|e }}',
-              'text': htmlDecode(`{{ pad.text|e }}`)
+              'text': htmlDecode(`{{ pad.text|e }}`),
+              'baseRev': '{{ pad.last_revision }}'
             });
         {% endfor %}
     </script>
@@ -142,7 +139,6 @@
     <script src="/static/js/lib/bootstrap.min.js"></script>
     <script src="/static/js/lib/socket.io.js"></script>
     <script src="/static/js/changeset.js"></script>
-    <script src="/static/js/countdown.js"></script>
     <script src="/static/js/project.js"></script>
     <script src="/static/js/socketio_client.js"></script>
     <script src="/static/js/codemirror.js"></script>

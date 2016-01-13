@@ -71,11 +71,13 @@ class Pad(db.Model):
     text = db.Column(db.Text)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     comments = db.relationship('Comment', backref='pad', lazy='dynamic')
+    last_revision = db.Column(db.String(10))
 
     def __init__(self, filename, project_id):
         self.filename = filename
         self.text = ''
         self.project_id = project_id
+        self.last_revision = '0'
 
     def __repr__(self):
         return self.filename
@@ -101,3 +103,6 @@ class Revision:
     def __init__(self, id, changeset):
         self.id = id
         self.changeset = changeset
+    def __repr__(self):
+        # return '' + str(self.id) + ' ' + str(self.changeset)
+        return 'id: ' + str(self.id) + '---' + ' baseLen ' + str(self.changeset['baseLen']) + ' newLen ' + str(self.changeset['newLen']) + ' baseRev ' + str(self.changeset['baseRev'])
