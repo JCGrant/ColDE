@@ -223,8 +223,10 @@ def follow(this, otherCs):
     return resultCs
     
 def compress(this):
+    print ('compress called on ' + str(this))
     # Initialise the resulting cs.
     resultCs = deepcopy(this)
+    print ('deep copied ' + str(resultCs))
     # Array of compressed ops.
     compressedOps = []
     for i in range(0, len(this['ops'])):
