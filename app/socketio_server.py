@@ -74,6 +74,7 @@ def handle(changeset):
         revisions[project_id][pad_id].append(Revision(crtRev, changeset))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
+        changeset['revId'] = crtRev
         updateDBPad(changeset, crtRev)
         # Add the new comments to DB.
         if 'comments' in changeset:
