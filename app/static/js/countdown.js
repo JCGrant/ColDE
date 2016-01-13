@@ -1,13 +1,11 @@
-
 var first = true;
-countdown();
-
-var tick;
 
 function countdown() {
 	if (!first) {
-		tick();
+		postMessage('message');
 	}
 	first = false;
-	setTimeout(countdown, 500);
+	setTimeout("countdown()", 500);
 };
+
+countdown();

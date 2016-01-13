@@ -151,7 +151,8 @@
             pads.push({
               'id': {{ pad.id }},
               'filename': '{{ pad.filename|e }}',
-              'text': htmlDecode(`{{ pad.text|e }}`)
+              'text': htmlDecode(`{{ pad.text|e }}`),
+              'baseRev': '{{ pad.last_revision }}'
             });
         {% endfor %}
     </script>
@@ -165,7 +166,6 @@
     <script src="/static/js/lib/bootstrap.min.js"></script>
     <script src="/static/js/lib/socket.io.js"></script>
     <script src="/static/js/changeset.js"></script>
-    <script src="/static/js/countdown.js"></script>
     <script src="/static/js/project.js"></script>
     <script src="/static/js/socketio_client.js"></script>
     <script src="/static/js/codemirror.js"></script>

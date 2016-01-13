@@ -59,8 +59,6 @@ for (var i = 0; i < pads.length; ++i) {
   pads[i].csX = new Changeset(pads[i].text.length);
   // Unsubmitted local composition of changes.
   pads[i].csY = new Changeset(pads[i].text.length);
-  // The last revision received from server.
-  pads[i].baseRev = 0;
   // Add the current pad in the mapping by id.
   padById[pads[i].id] = pads[i];
 }
@@ -70,6 +68,7 @@ socket.on('server_client_changeset', function(cs) {
   if (cs['clientId'] === userId) {
     return;
   }
+  console.log('Received ' + JSON.stringify(cs));
 
   // Create changeset.
   var changeset = new Changeset(0);
@@ -85,17 +84,21 @@ socket.on('server_client_changeset', function(cs) {
   var nextX = changeset.mergeChangeset(pad.csX);
   var nextY = pad.csX.mergeChangeset(changeset).mergeChangeset(pad.csY);
   var D     = pad.csY.mergeChangeset(pad.csX.mergeChangeset(changeset));
+  console.log('nextA becomes ' + JSON.stringify(nextA));
+  console.log('nextA becomes ' + JSON.stringify(nextX));
+  console.log('nextA becomes ' + JSON.stringify(nextY));
+  console.log('nextA becomes ' + JSON.stringify(D));
   // Update changesets.
   pad.csA = nextA;
   pad.csX = nextX;
   pad.csY = nextY;
   // Copy the list of received comments to D.
   D['comments'] = cs['comments'];
+  // Update base changeset.
+  pad.baseRev = cs['revId'];
   // Apply D changeset on current code mirror view even if the updated pad
   // is not the one we display.
   processExternalChangeset(cs['padId'], D);
-  // Update base changeset.
-  pad.baseRev = cs['baseRev'];
 });
 
 // TODO(mihai): check how to use a socket.io callback for this.
@@ -191,7 +194,6 @@ var maybeSend = function() {
     if (!pads[i].csX.isIdentity() || pads[i].csY.isIdentity()) {
       continue;
     }
-
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
     pads[i].csY['padId'] = pads[i].id;
@@ -205,7 +207,11 @@ var maybeSend = function() {
       }
       delete codeToComment[pads[i].id];
     }
+    // Assing this commit a revision id.
+    pads[i].csY['revId'] = randomString(10);
+    // Emit.
     socket.emit('client_server_changeset', pads[i].csY);
+    pads[i].baseRev = pads[i].csY['revId'];
     // Compute pad len by adding comments len.
     var expanded = 0;
     var allMarks = padEditor[pads[i].id].getAllMarks();
@@ -226,15 +232,17 @@ var maybeSend = function() {
 /**
  * Create the 500ms ticker.
  */
-var sender;
-if (typeof(sender) == 'undefined') {
-  sender = new Worker('countdown.js');
-}
+var sender = new Worker('/static/js/countdown.js');
+
+// Add event listener to the worker.
+sender.onmessage = function(msg) {
+  tick();
+};
 
 /**
  * Called every 500ms.
  */
-tick = function() {
+var tick = function() {
   // Maybe send existing changes to server.
   maybeSend();
   // Maybe refresh HTML display.

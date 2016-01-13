@@ -26,7 +26,6 @@ def clientConnect(projectId):
 
 @socketio.on('clientDisconnect')
 def clientDisconnect(pads):
-    print ("serverDisonnect")
     projectId = pads['projectId']
     # Remove user from dictionary and room.
     project_users[projectId].remove(request.sid)
@@ -39,8 +38,6 @@ def clientDisconnect(pads):
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
-    # Include the id of the client that generated the changeset.
-    changeset['clientId'] = request.sid
     # Fetch project and pad ids.
     project_id = changeset['projectId']
     pad_id = changeset['padId']
@@ -54,24 +51,36 @@ def handle(changeset):
         if project_id not in revisions:
             revisions[project_id] = {}
         if pad_id not in revisions[project_id]:
-            revisions[project_id][pad_id] = [Revision(0, None)]
-        next_revision = revisions[project_id][pad_id][-1].id + 1
+            revisions[project_id][pad_id] = [Revision('0', None)]
         
         # Follow the changeset by all revisions not known by that user.
         revs = revisions[project_id][pad_id]
         apply_from = len(revs)
-        for i in range(len(revs) - 1, 0, -1):
-            if changeset['baseRev'] == revs[i].id:
+        for i in range(len(revs), 0, -1):
+            if changeset['baseRev'] == revs[i - 1].id:
                 apply_from = i
                 break
         for i in range(apply_from, len(revs)):
+            if changeset['baseLen'] == revs[i].changeset['newLen']:
+                apply_from = i + 1
+                break
+        # Fetch current revision.
+        crtRev, baseRev = changeset['revId'], changeset['baseRev']
+        if apply_from != len(revs):
+            print ('current cs is ' + str(changeset))
+            print (str(revisions[project_id][pad_id][(apply_from-1):len(revs)]))
+        for i in range(apply_from, len(revs)):
+            print ('applied follow')
             changeset = follow(revs[i].changeset, changeset)
-
+        # Update base rev.
+        changeset['baseRev'] = baseRev
         # Create new revision out of this changeset.
-        revisions[project_id][pad_id].append(Revision(next_revision, changeset))
+        revisions[project_id][pad_id].append(Revision(crtRev, changeset))
+        print ('important revs: ' + str(revisions[project_id][pad_id][apply_from : ]))
         # Update current pad in db.
         changeset['projectId'], changeset['padId'] = project_id, pad_id
-        updateDBPad(changeset)
+        changeset['revId'] = crtRev
+        updateDBPad(changeset, crtRev)
         # Add the new comments to DB.
         if 'comments' in changeset:
             for code, comment in changeset['comments'].items():
@@ -80,9 +89,11 @@ def handle(changeset):
                 newComment.code = comment['code']
                 db.session.add(newComment)
             db.session.commit()
+        # Include the id of the client that generated the changeset.
+        changeset['clientId'] = request.sid
         # Broadcast to all clients.
-        print (str(changeset))
         emit('server_client_changeset', changeset, room=changeset['projectId'])
+        print ('------------------------------------------------')
     # Send ACK to the client.
     emit('server_client_ack', changeset['padId'], room=request.sid)
 
@@ -97,14 +108,15 @@ def chatMessage(message):
     emit('chat message', message, broadcast=True)
 
 # Updates the entries in the DB according to this info.
-def updateDBPad(changeset):
+def updateDBPad(changeset, crtRev):
     pad = Pad.query.filter_by(project_id=changeset['projectId']).\
         filter_by(id=changeset['padId']).first()
     if not pad:
         return
-    # Update pad content.
+    # Update pad text content.
     pad.text = applyChangeset(pad.text, changeset)
-    print (pad.text)
+    # Update code of last revision.
+    pad.last_revision = crtRev
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
@@ -136,8 +148,6 @@ def applyChangeset(text, changeset):
 
 def follow(this, otherCs):
     assert this['baseLen'] == otherCs['baseLen']
-    print (str(this))
-    print (str(otherCs))
     # Initialise the resulting cs.
     resultCs = {}
     resultCs['ops'] = []
@@ -216,25 +226,30 @@ def follow(this, otherCs):
     # Compute the new len of the changeset.
     resultCs['newLen'] = 0
     for i in range(0, len(resultCs['ops'])):
-        if resultCs['ops'][i][0] == '=' and resultCs['ops'][i][0] == '+':
+        if resultCs['ops'][i][0] == '=' or resultCs['ops'][i][0] == '+':
             resultCs['newLen'] += resultCs['ops'][i][1]
+    print ('follow on ' + str(this) + ' --- AND --- ' + str(otherCs) + ' RETURNS ' + str(resultCs))
     return resultCs
     
 def compress(this):
+    print ('compress called on ' + str(this))
     # Initialise the resulting cs.
     resultCs = deepcopy(this)
+    print ('deep copied ' + str(resultCs))
     # Array of compressed ops.
     compressedOps = []
-    for i in range(0, len(this['ops'])):
+    i = 0
+    while i < len(this['ops']):
         # Compute maximal segment with the same operation.
         j, sum = i, 0
         while j < len(this['ops']) and this['ops'][j][0] == this['ops'][i][0]:
             sum += this['ops'][j][1]
             j += 1
         compressedOps.append([this['ops'][i][0], sum])
-        i = j - 1
+        i = j
 
     if len(compressedOps) == 0:
         compressedOps = [['=', this.baseLen]]
     # Use the compressed ops, instead of the initial ones.
     resultCs['ops'] = compressedOps
+    return resultCs
