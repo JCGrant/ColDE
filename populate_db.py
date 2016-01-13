@@ -52,6 +52,16 @@ fibs(10)"""),
     for i in range(n):
         a, b = b, a + b
     return a"""),
+
+    ('turtle_test.py', 2,
+"""import turtle
+
+t = turtle.Turtle()
+
+for c in ['red', 'green', 'yellow', 'blue']:
+    t.color(c)
+    t.forward(75)
+    t.left(90)"""),
 ]
 
 for title in projects:
