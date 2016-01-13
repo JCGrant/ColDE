@@ -62,7 +62,8 @@ def handle(changeset):
                 break
         for i in range(apply_from, len(revs)):
             if changeset['baseLen'] == revs[i].changeset['newLen']:
-                apply_from = i
+                apply_from = i + 1
+                break
         # Fetch current revision.
         crtRev, baseRev = changeset['revId'], changeset['baseRev']
         if apply_from != len(revs):
