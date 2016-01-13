@@ -15,7 +15,7 @@ projects = [
 ]
 # pad <= (filename, project_id, text)
 pads = [
-    ('index.html', 1,
+    ('/index.html', 1,
 """<html>
   <head>
     <title>Test Site</title>
@@ -28,17 +28,17 @@ pads = [
   </body>
 </html>"""),
 
-    ('script.js', 1,
+    ('/script.js', 1,
 """var x = 2;
 var y = 3;
 console.log(x + y);"""),
 
-    ('style.css', 1,
+    ('/style.css', 1,
 """body {
   background: red;
 }"""),
 
-    ('app.py', 2,
+    ('/app.py', 2,
 """import helpers
 def fibs(n):
     for i in range(n):
@@ -46,14 +46,14 @@ def fibs(n):
 
 fibs(10)"""),
 
-    ('helpers.py', 2,
+    ('/helpers.py', 2,
 """def fib(n):
     a, b = 1, 1
     for i in range(n):
         a, b = b, a + b
     return a"""),
 
-    ('turtle_test.py', 2,
+    ('/turtle_test.py', 2,
 """import turtle
 
 t = turtle.Turtle()
