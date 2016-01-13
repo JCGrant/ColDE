@@ -195,12 +195,11 @@ var maybeSend = function() {
     }
     console.log('not identity');
     console.log('cs x is ' + pads[i].csX);
-    console.log('cs y is ' + pads[i].csY);
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
-    console.log('base rev is ' + pads[i].baseRev);
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
+    console.log('cs y is ' + pads[i].csY);
     // Add possible comments.
     console.log('found: ');
     if (pads[i].id in codeToComment) {

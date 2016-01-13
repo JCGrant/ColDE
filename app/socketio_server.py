@@ -219,6 +219,7 @@ def follow(this, otherCs):
     for i in range(0, len(resultCs['ops'])):
         if resultCs['ops'][i][0] == '=' or resultCs['ops'][i][0] == '+':
             resultCs['newLen'] += resultCs['ops'][i][1]
+    print ('follow on ' + str(this) + ' --- AND --- ' + str(otherCs) + ' RETURNS ' + str(resultCs))
     return resultCs
     
 def compress(this):
