@@ -188,7 +188,6 @@ var infinity = 2000000000;
 
 Changeset.prototype.mergeChangeset = function(otherCs) {
   console.assert(this.baseLen == otherCs.baseLen, "bad lengths in merge");
-  console.log('follow ' + JSON.stringify(this) + ' with ' + JSON.stringify(otherCs));
   // Initialise the resulting cs.
   resultCs = new Changeset(0);
   resultCs.ops = [];
@@ -281,7 +280,6 @@ Changeset.prototype.mergeChangeset = function(otherCs) {
       resultCs.newLen += resultCs.ops[i][1];
     }
   }
-  console.log('returns ' + JSON.stringify(resultCs));
   return resultCs;
 }
 

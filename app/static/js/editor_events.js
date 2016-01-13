@@ -37,7 +37,6 @@ var addComment = function(text) {
   editor.operation(function() {
     var cursorMarker = editor.setBookmark(cursor);
     myMarkers.push([cursorMarker, false]);
-    console.log('before2 ' + editor.getAllMarks().length);
     // Expand comments.
     expandEditorComments(displayedPad);
     // Create changeset object.
@@ -66,7 +65,6 @@ var addComment = function(text) {
     // Remove cursor marker.
     removeMarker(cursorMarker);
     cursorMarker.clear();
-    console.log('after2 ' + editor.getAllMarks().length);
     // Collapse comments.
     collapseEditorComments(displayedPad);
   });

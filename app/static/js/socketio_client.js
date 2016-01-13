@@ -68,7 +68,6 @@ socket.on('server_client_changeset', function(cs) {
   if (cs['clientId'] === userId) {
     return;
   }
-  console.log('Received ' + JSON.stringify(cs));
 
   // Create changeset.
   var changeset = new Changeset(0);
@@ -84,10 +83,6 @@ socket.on('server_client_changeset', function(cs) {
   var nextX = changeset.mergeChangeset(pad.csX);
   var nextY = pad.csX.mergeChangeset(changeset).mergeChangeset(pad.csY);
   var D     = pad.csY.mergeChangeset(pad.csX.mergeChangeset(changeset));
-  console.log('nextA becomes ' + JSON.stringify(nextA));
-  console.log('nextA becomes ' + JSON.stringify(nextX));
-  console.log('nextA becomes ' + JSON.stringify(nextY));
-  console.log('nextA becomes ' + JSON.stringify(D));
   // Update changesets.
   pad.csA = nextA;
   pad.csX = nextX;
