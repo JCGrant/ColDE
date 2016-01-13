@@ -656,7 +656,8 @@ function preprocess(text, type, filelist, initial) {
         text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
-      console.log(text);
+      classregex = new RegExp(classname, 'g');
+      text = text.replace(classregex, classname.replace('.', '_'));
     }
   }
   return text; 
