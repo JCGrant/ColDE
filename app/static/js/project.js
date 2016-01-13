@@ -8,9 +8,6 @@ function toggleWebView() {
     notClean = true;
     showConsole();
   }
-  webViewOpen = !webViewOpen;
-  var webVIewToggleButtonText = (webViewOpen ? 'Close' : 'Open') + ' Web View ' + '<span class="glyphicon glyphicon-modal-window"></span>';
-  webViewToggleButton.html(webVIewToggleButtonText);
 }
 
 function showConsole() {
@@ -25,6 +22,8 @@ function showConsole() {
     // frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
     frame.id = "webview";
     frameview.appendChild(frame);
+    webViewOpen = true;
+    webViewToggleButton.html('Close Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
   }
 }
 
@@ -35,6 +34,10 @@ function closeConsole() {
     var child = document.getElementById("webview");
     frameview.removeChild(webview);
     editorview.className = "col-xs-8";
+    webViewOpen = false;
+    webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
+    $('#frameview').html('');
+    frameview.className = '';
   }
 }
 
