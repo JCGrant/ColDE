@@ -559,12 +559,11 @@ function runit() {
    mypre.innerHTML = ''; 
    Sk.pre = "output";
    Sk.configure({output:outf, read:builtinRead}); 
-   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'mycanvas';
+   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'output';
    var myPromise = Sk.misceval.asyncToPromise(function() {
         return Sk.importMainWithBody("<stdin>", false, prog, true);
    });
    myPromise.then(function(mod) {
-       console.log('success');
    },
        function(err) {
        if(err.traceback[0]["lineno"] <= lines_modified) {
@@ -581,10 +580,10 @@ var initialFile;
 function preprocess(text, type, filelist, initial) {
   if(type === 1) {
     var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
-    var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*["\']stylesheet["\'][^>]*>', 'gi');
+    var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*(\"|\')stylesheet\\1[^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
-      var filename = /src[\s\t]*=[\s\t]*["'][^"^']*["']/gi.exec(res[0]);
+      var filename = /src[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0]);
       if (filename == null) {
         continue;
       }
@@ -598,7 +597,10 @@ function preprocess(text, type, filelist, initial) {
       text = text.replace(res[0], toReplace);
     } 
     while((res = regex2.exec(text)) !== null) {
-      var filename = /href[\s\t]*=[\s\t]*["'][^"^']*["']/gi.exec(res[0])
+      var filename = /href[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0])
+      if(filename == null) {
+        continue;
+      }
       filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
       var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
@@ -614,7 +616,6 @@ function preprocess(text, type, filelist, initial) {
     if(initial === 1) {
       initialFile = filelist.pop();
     }
-    console.log(initialFile);
     var regex = new RegExp ('import[^;\\n\\r]*', 'g');
     //TODO from X import Y;
     var res;
@@ -652,7 +653,6 @@ function preprocess(text, type, filelist, initial) {
         text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
         text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
-      console.log(text);
       stack.pop();
     }
   }

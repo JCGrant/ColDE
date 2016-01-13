@@ -142,17 +142,13 @@ var onBeforeChange = function(changeset) {
     newCs = new Changeset(getTextLength(displayedPad)).fromCodeMirror(
       changeset, getAbsoluteOffset(displayedPad, fromMarker.find()));
     // Remove auxiliary markers.
-    console.log('before ' + displayedEditor.getAllMarks().length);
     removeMarker(fromMarker); fromMarker.clear();
     removeMarker(toMarker); toMarker.clear();
-    console.log('after ' + displayedEditor.getAllMarks().length);
     // Collapse.
     collapseEditorComments(displayedPad);
   });
   // Merge changeset with csY.
   var pad = padById[displayedPad];
-  console.log('csy is ' + JSON.stringify(pad.csY));
-  console.log('newcs is ' + JSON.stringify(newCs));
   pad.csY = pad.csY.applyChangeset(newCs);
 }
 
@@ -195,17 +191,13 @@ var maybeSend = function() {
     if (!pads[i].csX.isIdentity() || pads[i].csY.isIdentity()) {
       continue;
     }
-    console.log('not identity');
-    console.log('cs x is ' + pads[i].csX);
-    console.log('cs y is ' + pads[i].csY);
+
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
     // Add possible comments.
-    console.log('found: ');
     if (pads[i].id in codeToComment) {
-      console.log('enters: ');
       pads[i].csY['comments'] = {};
       for (var code in codeToComment[pads[i].id]) {
         var comment = codeToComment[pads[i].id][code];
@@ -213,26 +205,19 @@ var maybeSend = function() {
       }
       delete codeToComment[pads[i].id];
     }
-    console.log('sends ' + JSON.stringify(pads[i].csY));
     socket.emit('client_server_changeset', pads[i].csY);
-    console.log('a emis');
     // Compute pad len by adding comments len.
     var expanded = 0;
     var allMarks = padEditor[pads[i].id].getAllMarks();
-    console.log(i);
     for (var j = 0; j < allMarks.length; ++j) {
       if (!isUnexpandable(allMarks[j])) {
         ++expanded;
       }
     }
-    console.log(i);
-    console.log('a emis2');
     var padActualLen = getTextLength(pads[i].id) + 20 * expanded;
-    console.log('a emis3');
     // Update changesets.
     pads[i].csX = pads[i].csY;
     pads[i].csY = new Changeset(padActualLen);
-    console.log('a emis4');
   }
 
   lastSent = t;
