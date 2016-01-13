@@ -197,6 +197,7 @@ var maybeSend = function() {
     console.log('cs x is ' + pads[i].csX);
     // Send.
     pads[i].csY['baseRev'] = pads[i].baseRev;
+    console.log('base rev becomes ' + pads[i].csY['baseRev'] + ' ' + pads[i].baseRev);
     pads[i].csY['padId'] = pads[i].id;
     pads[i].csY['projectId'] = projectId;
     console.log('cs y is ' + pads[i].csY);
@@ -215,6 +216,7 @@ var maybeSend = function() {
     // Assing this commit a revision id.
     pads[i].csY['revId'] = randomString(10);
     // Emit.
+    console.log('before send base rev ' + pads[i].csY['baseRev']);
     socket.emit('client_server_changeset', pads[i].csY);
     pads[i].baseRev = pads[i].csY['revId'];
     console.log('a emis');
