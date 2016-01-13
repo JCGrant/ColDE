@@ -74,7 +74,6 @@ var runHTML = function() {
     }
     web = preprocess(web, 1);
     if (myPre != null && web != null) {
-      interceptConsoleLogs(myPre);
       myPre.src = "data:text/html;charset=utf-8," + escape(web);
     }
     notClean = false;
@@ -511,25 +510,6 @@ function interceptConsoleLogs(mypre) {
           oldLog.apply(console, arguments);
       };
     })();
-    // var console = window.console;
-    // if (!console) return;
-    // function intercept(method){
-    //     var original = console[method];
-    //     console[method] = function(){
-    //         mypre.innerHTML = mypre.innerHTML + arguments[0] + "\n";
-    //         if (original.apply){
-    //             // Do this for normal browsers
-    //             original.apply(console, arguments);
-    //         }else{
-    //             // Do this for IE
-    //             var message = Array.prototype.slice.apply(arguments).join(' ');
-    //             original(message);
-    //         }
-    //     }
-    // }
-    // var methods = ['log', 'warn', 'error'];
-    // for (var i = 0; i < methods.length; i++)
-    //     intercept(methods[i]);
 }
 
 function restoreConsole(){
