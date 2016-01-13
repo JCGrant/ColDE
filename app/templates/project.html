@@ -30,11 +30,6 @@
     <script src="/static/CodeMirror/mode/htmlmixed/htmlmixed.js"></script>
     <script src="/static/CodeMirror/keymap/sublime.js"></script>
 
-    <!-- These are for skulpt - just try -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js" type="text/javascript"></script> 
-    <script src="http://www.skulpt.org/static/skulpt.min.js" type="text/javascript"></script> 
-    <script src="http://www.skulpt.org/static/skulpt-stdlib.js" type="text/javascript"></script> 
-
   </head>
   <body>  
 
@@ -64,29 +59,6 @@
       </div>
     </nav>
 
-    <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="newUserModalLabel">New User</h4>
-          </div>
-          <div class="modal-body">
-              <label for="name">Please select the users you want to add</label><br>
-              <select id="newUserSelect" multiple style="width: 100%;">
-              {% for user in users %}
-                <option value='{{ user.username }}'>{{ user.username }}</option>
-              {% endfor %}
-              </select>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id='newUserButton' type="button" class="btn btn-primary">Done</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="modal fade" id="newPadModal" tabindex="-1" role="dialog" aria-labelledby="newPadModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -94,37 +66,63 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title" id="newPadModalLabel">New File</h4>
           </div>
-          <div class="modal-body">
-                <div class="form-group">
-                    <label for="name">Please choose a name for the file:</label>
-                    <input id="padName" class="form-control" type="text" placeholder="Filename">
-                </div>
+          <form action='pad/new'>
+            <div class="modal-body">
+                  <div class="form-group">
+                      <label for="name">Please choose a name for the file:</label>
+                      <input id="padName" class="form-control" type="text" placeholder="Filename" name='filename'>
+                  </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newUserModalLabel">New User</h4>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id='createNewPadButton' type="button" class="btn btn-primary">Done</button>
-          </div>
+          <form action='add_users'>
+            <div class="modal-body">
+                <label for="name">Please select the users you want to add</label><br>
+                <select id="newUserSelect" multiple style="width: 100%;" name='username'>
+                {% for user in users %}
+                  <option value='{{ user.username }}'>{{ user.username }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
         </div>
       </div>
     </div>
 
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-2">
-          <ul class="nav nav-sidebar">
+        <div class="col-xs-2 col-lg-1">
+          <ul>
             {% for pad in project.pads %}
             <li><a class='pad-button' data-id={{pad.id}} href='#'>{{ pad.filename }}</a></li>
             {% endfor %}
           </ul>
         </div>
-        <div id="editorview" class="col-md-8">
+        <div id="editorview" class="col-xs-8 col-lg-10">
           <div id="editorAreas"></div>
           <pre id="output" ></pre> 
-          <div id="mycanvas" ></div>
+          <div id="mycanvas"></div>
         </div>
-        <div id="frameview">
-        </div>
-        <div class="col-md-2">
+        <div id="frameview"></div>
+        <div class="col-xs-2 col-lg-1">
           <ul id="messages"></ul>
           <form id="chat" action="">
             <input autocomplete="off" />
@@ -166,6 +164,8 @@
       var current_user = "{{ current_user.username }}";
     </script>
     <script src="/static/js/lib/jquery.min.js"></script>
+    <script src="/static/js/lib/skulpt.min.js"></script>
+    <script src="/static/js/lib/skulpt-stdlib.js"></script>
     <script src="/static/js/lib/select2.full.min.js"></script>
     <script src="/static/js/lib/bootstrap.min.js"></script>
     <script src="/static/js/lib/socket.io.js"></script>
