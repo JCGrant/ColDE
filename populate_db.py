@@ -38,13 +38,6 @@ console.log(x + y);"""),
   background: red;
 }"""),
 
-    ('helpers.py', 2,
-"""def fib(n):
-    a, b = 1, 1
-    for i in range(n):
-        a, b = b, a + b
-    return a"""),
-
     ('app.py', 2,
 """import helpers
 def fibs(n):
@@ -52,6 +45,13 @@ def fibs(n):
         print(helpers.fib(i))
 
 fibs(10)"""),
+
+    ('helpers.py', 2,
+"""def fib(n):
+    a, b = 1, 1
+    for i in range(n):
+        a, b = b, a + b
+    return a"""),
 ]
 
 for title in projects:
