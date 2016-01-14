@@ -75,14 +75,13 @@ var addComment = function(text) {
   displayComment(comment);
 }
 
-/// The 'add comment' button.
-var addCommentButton = document.getElementById('clickAddComment');
-/**
- * Called when the add comment button is clicked.
- */
-addCommentButton.onclick = function() {
-  var text = prompt("Enter comment below");
-  if (text != null) {
+$('#newCommentForm').submit(function(event) {
+  $newCommentText = $('#newCommentText');
+  var text = $newCommentText.val();
+  $newCommentText.val('');
+  if (text != '') {
     addComment(text);
   }
-}
+  $('#addCommentModal').modal('hide');
+  event.preventDefault();
+})
