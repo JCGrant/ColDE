@@ -4,6 +4,7 @@ var project = split[4];
 var tree = $("#container").jstree({
     'core' : {
       "check_callback" : true,
+      "themes" : { "stripes" : true },
     	'data' : {
         	"url" : "/project/" + project + "/filesJSON",
         	"dataType" : "json",
@@ -12,14 +13,20 @@ var tree = $("#container").jstree({
         	}
       	}
      }, 
-	'plugins' : ["contextmenu", "dnd"]
+  'contextmenu' : { 'items' : customMenu },
+	'plugins' : ["contextmenu"]
+});
+
+tree.on("loaded.jstree", function() {
+  tree.jstree('open_all');
 });   
 
 tree.on("create_node.jstree", function(e, data) {
   var parent = data.node.parent;
+  var type = data.node.original.nodetype;
   //alert(JSON.stringify(data));
   //alert("/project/4/pad/new" + "?parent=" + parent + "&filename=" + "New node")
-  $.get("/project/" + project +"/pad/new" + "?parent=" + parent + "&filename=" + "New node");
+  $.get("/project/" + project +"/pad/new" + "?parent=" + parent + "&filename=" + "New node" + "&type=" + type);
 });
 
 tree.on("rename_node.jstree", function(e, data) {
@@ -41,6 +48,8 @@ tree.on("rename_node.jstree", function(e, data) {
 });
 
 tree.on("delete_node.jstree", function(e,data) {
+  console.log(JSON.stringify(data.node));
+
   var parent = data.node.parent;
   var name = data.node.text;
   $.get("/project/" + project + "/pad/delete" + "?parent=" + parent + "&filename=" + name);
@@ -62,6 +71,64 @@ tree.on("select_node.jstree", function(e, data) {
     } 
   });
 });
+
+function customMenu(node) {
+    // The default set of all items
+    var items = {
+
+        createFileItem : { // The "delete" menu item
+            label: "Create File",
+            action: function (data)   {
+              var inst = $.jstree.reference(data.reference),
+              obj = inst.get_node(data.reference);
+              inst.create_node(obj, {'nodetype' : 'filenode'}, "last", function (new_node) {
+              //alert(JSON.stringify(new_node));
+              setTimeout(function () { inst.edit(new_node); },0);
+            });
+          }
+        },
+
+        createItem : { // The "delete" menu item
+            label: "Create Folder",
+            action: function (data) {   
+              var inst = $.jstree.reference(data.reference),
+              obj = inst.get_node(data.reference);
+              inst.create_node(obj, {'nodetype' : 'foldernode'}, "last", function (new_node) {
+              //alert(JSON.stringify(new_node));
+              setTimeout(function () { inst.edit(new_node); },0);
+            });
+          }
+        },
+
+        renameItem: { // The "rename" menu item
+            label: "Rename",
+            action: function (data) {
+                var inst = $.jstree.reference(data.reference),
+                obj = inst.get_node(data.reference);
+                inst.edit(obj);
+            }
+        },
+
+        deleteItem: { // The "delete" menu item
+            label: "Delete",
+            action: function (data) {
+                var inst = $.jstree.reference(data.reference),
+                obj = inst.get_node(data.reference);
+                if(inst.is_selected(obj)) {
+                  inst.delete_node(inst.get_selected());
+                }else {
+                  inst.delete_node(obj);
+                }
+            }
+        }
+    };
+    if(node.original.type === 'file') {
+        delete items.createItem;
+        delete items.createFileItem;
+    }
+
+    return items;
+}
 
 // function createEditorPad(pad) {
 //   console.log('before iniit ' + i);
