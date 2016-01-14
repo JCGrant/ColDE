@@ -112,6 +112,8 @@ var isUnexpandable = function(marker) {
   return true;
 }
 
+// Id counter for comments.
+var commentId = 0;
 /**
  * Adds the bookmark in codemirror.
  */
@@ -130,6 +132,11 @@ var displayComment = function(comment) {
   element.setAttribute('data-placement', 'top');
   console.log('comment is ' + comment['text']);
   element.setAttribute('data-content', comment['text']);
+  element.id = 'comment' + commentId;
+  // Save current comment id.
+  var usedId = commentId;
+  // Increase comment id counter.
+  ++commentId;
 
   var position = {
     'line': comment['line'],
@@ -142,12 +149,17 @@ var displayComment = function(comment) {
   $(document).ready(function() {
     $('[data-toggle="popover"]').popover();
   });
+  // Return current comment id.
+  return '#comment'+usedId;
 }
 
 /**
  * Detect comments added by a new changeset, and display them in the client.
  */
 var detectComments = function(editor) {
+  // List of comment ids generated in this call.
+  var ids = [];
+  // Content & content pointer.
   var content = editor.getValue('');
   var p = content.length;
   while (true) {
@@ -167,8 +179,8 @@ var detectComments = function(editor) {
       var comment = allComments[commentCode];
       comment['line'] = start['line'];
       comment['ch'] = start['ch'];
-      console.log('adding comment at ' + JSON.stringify(comment));
-      displayComment(comment);
+      // Push the id in the resulting ids list.
+      ids.push(displayComment(comment));
       // Update pointer to skip the found range.
       p -= 18;
     } else {
@@ -176,6 +188,8 @@ var detectComments = function(editor) {
       --p;
     }
   }
+  // Return the ids.
+  return ids;
 }
 
 /// Maps pad id to pad text area.
@@ -427,6 +441,8 @@ processExternalChangeset = function(padId, changeset) {
       allComments[code] = changeset['comments'][code];
     }
   }
+  // Ids of comments to be shown after creation.
+  var ids;
   // Wrap everything in an atomic operation.
   editor.operation(function() {
     // Expand code comments to occupy real space in editor.
@@ -460,11 +476,15 @@ processExternalChangeset = function(padId, changeset) {
     // Compact code comments to no longer occupy space in editor.
     collapseEditorComments(padId);
     // Expand possible newly added comments.
-    detectComments(editor);
+    ids = detectComments(editor);
   });
   // Enable bootstrap popover.
   $(document).ready(function() {
     $('[data-toggle="popover"]').popover();
+    // Popup required comments.
+    for (var i = 0; i < ids.length; ++i) {
+      $(ids[i]).popover('show');
+    }
   });
 };
 
