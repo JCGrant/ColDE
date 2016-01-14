@@ -8,7 +8,6 @@ import re
 
 tree_mappings = {}
 tree_mappings[1] = "/"
-files = []
 
 @lm.user_loader
 def load_user(id):
@@ -88,6 +87,9 @@ def project(id):
 def new_pad(id):
     parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
+    file_type = request.args.get('type', 'filenode')
+
+
     #print ("\n\n\n\n\n" + parent + "\n\n\n\n\n")
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
@@ -98,6 +100,8 @@ def new_pad(id):
     if project is None:
         return redirect(url_for('home'))
     pad = Pad(filename, id)
+    if file_type == 'filenode':
+        pad.is_file = True
     db.session.add(pad)
     db.session.commit()
     return redirect(url_for('project', id=id))
@@ -119,7 +123,7 @@ def get_pad(id):
     result["id"] = pad.id
     result["filename"] = pad.filename
     result["text"] = pad.text;
-    if filename not in files:
+    if not pad.is_file:
         result["id"] = -1
     return json.dumps(result)
 
@@ -174,9 +178,6 @@ def rename_pad(id):
         new_filename = tree_mappings[int(parent)] + new_filename
     project = Project.query.get(id)
 
-    if is_file:
-        files.append(new_filename)
-
     #print ("\n\n\n\n\n" + filename + " " + new_filename + "\n\n\n\n\n")
 
     if project is None:
@@ -216,7 +217,8 @@ def delete_pad(id):
     db.session.commit()
     return redirect(url_for('project', id=project.id))
 
-def construct_JSON(filenames):
+def construct_JSON(filenames, id):
+    project = Project.query.get(id)
     id_count = 1
     root = {"id": id_count, "text": "Root"}
     #Keeping the mappings
@@ -234,13 +236,13 @@ def construct_JSON(filenames):
                 if x != paths[len(paths) - 1]:
                     current_path += "/"
                 else:
-                    if "." in x:
-                        files.append(current_path)
+                    pad = project.pads.filter_by(filename=current_path).first()
+                    print ("\n\n\n\n\n\n\n\n" + current_path + "\n\n\n\n\n\n\n\n")
+                    if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
-                        step["type"] = "file"
+                        step['type'] = 'file'
                     else:
-                        step["type"] = "folder"
-
+                        step['type'] = 'folder'
                 tree_mappings[id_count] = current_path 
                 id_count += 1
                 exists = False
@@ -271,5 +273,5 @@ def construct_JSON(filenames):
 def files_JSON(id):
     project = Project.query.get(id)
     pads_filenames = [pad.filename for pad in project.pads]
-    result = construct_JSON(pads_filenames)
+    result = construct_JSON(pads_filenames, id)
     return json.dumps(result)
