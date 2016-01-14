@@ -17,6 +17,7 @@ function showConsole() {
     editorview.className = "col-xs-4";
     var frame = document.createElement("iframe");
     frame.className = "col-xs-4";
+    frame.style.height = "79vh";
     frame.scrolling = "yes";
     frame.frameBorder = "0";
     // frame.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
