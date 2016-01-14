@@ -128,14 +128,15 @@ var displayComment = function(comment) {
   // element.setAttribute('data-trigger', 'focus');
   // TODO(mihai): set placement according to width / height.
   element.setAttribute('data-placement', 'top');
+  console.log('comment is ' + comment['text']);
   element.setAttribute('data-content', comment['text']);
 
   var position = {
     'line': comment['line'],
     'ch': comment['ch']
   }
-  var marker = 
-    padEditor[comment['padId']].setBookmark(position, {'widget' : element});
+  var marker = padEditor[comment['padId']].setBookmark(position, 
+    {'widget' : element, 'handleMouseEvents' : true});
   myMarkers.push([marker, true]);
   // Enable bootstrap popover.
   $(document).ready(function() {
@@ -166,6 +167,7 @@ var detectComments = function(editor) {
       var comment = allComments[commentCode];
       comment['line'] = start['line'];
       comment['ch'] = start['ch'];
+      console.log('adding comment at ' + JSON.stringify(comment));
       displayComment(comment);
       // Update pointer to skip the found range.
       p -= 18;
@@ -459,6 +461,10 @@ processExternalChangeset = function(padId, changeset) {
     collapseEditorComments(padId);
     // Expand possible newly added comments.
     detectComments(editor);
+  });
+  // Enable bootstrap popover.
+  $(document).ready(function() {
+    $('[data-toggle="popover"]').popover();
   });
 };
 
