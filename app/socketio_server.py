@@ -97,9 +97,10 @@ def onNewComment(comment):
     comment['clientId'] = request.sid
     emit('server_client_comment', comment, room=comment['projectId'])
 
-@socketio.on('chat message')
+@socketio.on('client_server_chat_message')
 def chatMessage(message):
-    emit('chat message', message, broadcast=True)
+    text = message['text']
+    emit('server_client_chat_message', text, room = message['projectId'])
 
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset, crtRev):

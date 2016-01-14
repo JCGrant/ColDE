@@ -256,16 +256,22 @@ var getAllPads = function() {
   return allPads;
 }
 
-
-// Recieve chat message
-socket.on('chat message', function(msg) {
+/**
+ * Chat message reciever.
+ */
+socket.on('server_client_chat_message', function(msg) {
   $('#messages').append($('<li>').text(msg));
 });
 
-// Send chat message
+// Send chat message.
 var $chat_input = $('#chat input');
 $('#chat').submit(function() {
-  socket.emit('chat message', current_user + ": " + $chat_input.val());
+  // Create the message.
+  var message = {};
+  message['projectId'] = projectId;
+  message['text'] = current_user + ": " + $chat_input.val();
+  // Send it to server in order to be broadcasted.
+  socket.emit('client_server_chat_message', message);
   $chat_input.val('');
   return false;
 });
