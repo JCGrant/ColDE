@@ -83,6 +83,7 @@ function customMenu(node) {
               obj = inst.get_node(data.reference);
               inst.create_node(obj, {'nodetype' : 'filenode'}, "last", function (new_node) {
               //alert(JSON.stringify(new_node));
+              new_node.icon = "glyphicon glyphicon-file"
               setTimeout(function () { inst.edit(new_node); },0);
             });
           }
