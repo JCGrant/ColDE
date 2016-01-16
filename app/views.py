@@ -211,7 +211,6 @@ def delete_pad(id):
         return redirect(url_for('home'))
 
     # Let the other clients know.
-    socketio_server.onFileManipulation('delete', {'projectId': id})
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.match(filename, pad_name)
@@ -220,6 +219,10 @@ def delete_pad(id):
             pad = project.pads.filter_by(filename=pad_name).first()
             db.session.delete(pad)
     db.session.commit()
+    # Let the other clients know.
+    msg = {'projectId': id}
+    msg['padId'] = pad.id
+    socketio_server.onFileManipulation('delete', msg)
     return redirect(url_for('project', id=project.id))
 
 def construct_JSON(filenames, id):
