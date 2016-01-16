@@ -33,7 +33,7 @@ function closeConsole() {
     var editorview = document.getElementById("editorview");
     var frameview = document.getElementById("frameview");
     var child = document.getElementById("webview");
-    frameview.removeChild(webview);
+    frameview.removeChild(child);
     editorview.className = "col-xs-8";
     webViewOpen = false;
     webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
