@@ -130,7 +130,6 @@ var displayComment = function(comment) {
   // element.setAttribute('data-trigger', 'focus');
   // TODO(mihai): set placement according to width / height.
   element.setAttribute('data-placement', 'top');
-  console.log('comment is ' + comment['text']);
   element.setAttribute('data-content', comment['text']);
   element.id = 'comment' + commentId;
   // Save current comment id.

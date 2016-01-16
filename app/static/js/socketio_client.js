@@ -280,7 +280,6 @@ $('#chat').submit(function() {
  * File manipulation event received from server.
  */
 socket.on('server_client_file_manipulation', function(msg) {
-  console.log('received man');
   // Process manipulation.
   processExternalFileManipulation(msg);
 });
