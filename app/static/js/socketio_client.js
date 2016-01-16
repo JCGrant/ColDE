@@ -281,5 +281,5 @@ $('#chat').submit(function() {
  */
 socket.on('server_client_file_manipulation', function(msg) {
   console.log('received man');
-  location.reload();
+  refreshFileTree();
 });

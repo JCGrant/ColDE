@@ -41,17 +41,17 @@ tree.on("rename_node.jstree", function(e, data) {
   $.get(getContent);
   // TODO(mihai): remove page reload.
   // location.reload();
-  tree.jstree("refresh"); 
+  refreshFileTree();
 });
 
-tree.on("delete_node.jstree", function(e,data) {
+tree.on("delete_node.jstree", function(e, data) {
   var parent = data.node.parent;
   var name = data.node.text;
   // Create GET content.
   var getContent = "/project/" + project + "/pad/delete" + "?parent=" + 
     parent + "&filename=" + name;
   $.get(getContent);
-  tree.jstree("refresh");
+  refreshFileTree();
 });
 
 tree.on("select_node.jstree", function(e, data) {
@@ -65,6 +65,10 @@ tree.on("select_node.jstree", function(e, data) {
     } 
   });
 });
+
+var refreshFileTree = function() {
+  tree.jstree("refresh");
+}
 
 function customMenu(node) {
     // The default set of all items
