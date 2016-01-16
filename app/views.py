@@ -103,6 +103,7 @@ def new_pad(id):
     msg = {'projectId': id}
     msg['padId'], msg['filename'] = pad.id, pad.filename
     msg['text'], msg['baseRev'] = pad.text, pad.last_revision
+    print ('new pad ' + str(pad.id))
     socketio_server.onFileManipulation('new', msg)
     return redirect(url_for('project', id=id))
 
@@ -114,7 +115,6 @@ def get_pad(id):
     if project is None:
         return redirect(url_for('home'))
     filename = tree_mappings[int(node_id)]
-    #print("\n\n\n\n" + filename + "\n\n\n\n")
     pad = project.pads.filter_by(filename=filename).first()
     result = {}
     if pad is None:
@@ -184,7 +184,6 @@ def rename_pad(id):
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.sub(filename, new_filename, pad_name)
-        #print ("\n\n\n\n\n" + pad_name + "\n\n\n\n\n")
         if result != pad_name:
             pad = project.pads.filter_by(filename=pad_name).first()
             pad.filename = new_filename
@@ -192,6 +191,7 @@ def rename_pad(id):
     # Let the other clients know.
     msg = {'projectId': id}
     msg['padId'], msg['filename'] = pad.id, pad.filename
+    print ('renamed ' + str(pad.id))
     socketio_server.onFileManipulation('rename', msg)
     return redirect(url_for('project', id=project.id))
 
@@ -210,19 +210,19 @@ def delete_pad(id):
     if project is None:
         return redirect(url_for('home'))
 
-    # Let the other clients know.
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.match(filename, pad_name)
-        print ("\n\n\n\n\n" + filename + " " + pad_name + "\n\n\n\n\n")
         if result:
             pad = project.pads.filter_by(filename=pad_name).first()
+            # Let the other clients know.
+            msg = {'projectId': id}
+            msg['padId'] = pad.id
+            print ('deleted ' + str(pad.id))
+            socketio_server.onFileManipulation('delete', msg)
+            # Remove from DB.
             db.session.delete(pad)
     db.session.commit()
-    # Let the other clients know.
-    msg = {'projectId': id}
-    msg['padId'] = pad.id
-    socketio_server.onFileManipulation('delete', msg)
     return redirect(url_for('project', id=project.id))
 
 def construct_JSON(filenames, id):
@@ -245,7 +245,6 @@ def construct_JSON(filenames, id):
                     current_path += "/"
                 else:
                     pad = project.pads.filter_by(filename=current_path).first()
-                    print ("\n\n\n\n\n\n\n\n" + current_path + "\n\n\n\n\n\n\n\n")
                     if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
                         step['type'] = 'file'
@@ -265,11 +264,6 @@ def construct_JSON(filenames, id):
                             break
                     if not exists:
                         current_location['children'].append(step)
-
-                ''' print ("\n\n\n\n\n\n")
-                print (json.dumps(current_location))
-                print("\n\n\n\n\n\n\n")
-                '''
 
                 if x != paths[len(paths) - 1] and not exists:
                     current_location = current_location['children']

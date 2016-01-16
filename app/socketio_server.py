@@ -119,6 +119,12 @@ def updateDBPad(changeset, crtRev):
 # Handles file manipulations from a client, broadcasts to the others.
 def onFileManipulation(type, content):
     content['type'] = type
+    # Remove revisions if needed.
+    if type == 'delete':
+        if content['projectId'] in revisions and \
+            content['padId'] in revisions[content['projectId']]:
+            del revisions[content['projectId']][content['padId']]
+            print ('deleted')
     # Broadcast to clients in project room.
     socketio.emit('server_client_file_manipulation', 
         content, room=content['projectId'])
