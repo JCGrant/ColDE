@@ -20,6 +20,9 @@ var tree = $("#container").jstree({
 tree.on("loaded.jstree", function() {
   tree.jstree('open_all');
 });
+tree.on("refresh.jstree", function() {
+  tree.jstree('open_all');
+});
 
 tree.on("create_node.jstree", function(e, data) {
   var parent = data.node.parent;
@@ -39,8 +42,6 @@ tree.on("rename_node.jstree", function(e, data) {
   var getContent = "/project/" + project + "/pad/rename" + "?parent=" + 
     parent + "&filename=" + old_name + "&new=" + name;
   $.get(getContent);
-  // TODO(mihai): remove page reload.
-  // location.reload();
   refreshFileTree();
 });
 
@@ -68,7 +69,6 @@ tree.on("select_node.jstree", function(e, data) {
 
 var refreshFileTree = function() {
   tree.jstree("refresh");
-  tree.jstree("open_all");
 }
 
 function customMenu(node) {
