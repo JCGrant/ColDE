@@ -19,54 +19,48 @@ var tree = $("#container").jstree({
 
 tree.on("loaded.jstree", function() {
   tree.jstree('open_all');
-});   
+});
 
 tree.on("create_node.jstree", function(e, data) {
   var parent = data.node.parent;
   var type = data.node.original.nodetype;
-  //alert(JSON.stringify(data));
-  //alert("/project/4/pad/new" + "?parent=" + parent + "&filename=" + "New node")
-  $.get("/project/" + project +"/pad/new" + "?parent=" + parent + "&filename=" + "New node" + "&type=" + type);
+  // Create GET content.
+  var getContent = "/project/" + project +"/pad/new" + "?parent=" + 
+    parent + "&filename=" + "New node" + "&type=" + type;
+  $.get(getContent);
 });
 
 tree.on("rename_node.jstree", function(e, data) {
-  //Name is the new value
+  // Name is the new value.
   var name = data.node.text;
   var old_name = data.node.original.text;
   var parent = data.node.parent;
-  //alert(JSON.stringify(data));  //alert(JSON.stringify(data));
-  //alert("project/4/pad/rename" + "?parent=" + parent + "&filename=" + name + "&new=" + "new");
-  $.get("/project/" + project + "/pad/rename" + "?parent=" + parent + "&filename=" + old_name + "&new=" + name);
-  /*$.get("/project/" + project + "/pad/getPad" + "?id=" + id, function(data) {
-    obj = JSON.parse(data);
-    alert(JSON.stringify(data));
- 
-  });
-*/
-  location.reload();
+  // Create GET content.
+  var getContent = "/project/" + project + "/pad/rename" + "?parent=" + 
+    parent + "&filename=" + old_name + "&new=" + name;
+  $.get(getContent);
+  // TODO(mihai): remove page reload.
+  // location.reload();
   tree.jstree("refresh"); 
 });
 
 tree.on("delete_node.jstree", function(e,data) {
-  console.log(JSON.stringify(data.node));
-
   var parent = data.node.parent;
   var name = data.node.text;
-  $.get("/project/" + project + "/pad/delete" + "?parent=" + parent + "&filename=" + name);
+  // Create GET content.
+  var getContent = "/project/" + project + "/pad/delete" + "?parent=" + 
+    parent + "&filename=" + name;
+  $.get(getContent);
   tree.jstree("refresh");
 });
 
 tree.on("select_node.jstree", function(e, data) {
   var id = data.node.id;
+  // TODO(mihai): get for pad change?
   $.get("/project/" + project + "/pad/getPad" + "?id=" + id, function(data) {
     obj = JSON.parse(data);
-    //alert(obj.id);
     if(obj.id != "-1") {
-      /*if(typeof(padTextArea[obj.id]) == "undefined") {
-        createEditorPad(obj);
-        pads.push(obj);
-      }*/
-      
+      // Other file selected, update currently displayed pad.
       updateDisplayedPad(parseInt(obj.id));
     } 
   });

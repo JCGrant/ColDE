@@ -1,6 +1,6 @@
 from flask import render_template, redirect, flash, url_for, g, request, jsonify
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from app import app, db, lm
+from app import app, db, lm, socketio_server
 from .models import User, Project, Pad
 from .forms import LoginForm
 import json
@@ -34,8 +34,6 @@ def register():
             return redirect(url_for('home'))
     return render_template('login.html',
                            form=form, title='Register')
-
-
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -88,17 +86,15 @@ def new_pad(id):
     parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
     file_type = request.args.get('type', 'filenode')
-
-
-    #print ("\n\n\n\n\n" + parent + "\n\n\n\n\n")
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
         filename = tree_mappings[int(parent)] + filename
 
-    project = Project.query.get(id)
     if project is None:
         return redirect(url_for('home'))
+    # Let the other clients know.
+    socketio_server.onFileManipulation('new', {'projectId': id})
     pad = Pad(filename, id)
     if file_type == 'filenode':
         pad.is_file = True
@@ -178,10 +174,10 @@ def rename_pad(id):
         new_filename = tree_mappings[int(parent)] + new_filename
     project = Project.query.get(id)
 
-    #print ("\n\n\n\n\n" + filename + " " + new_filename + "\n\n\n\n\n")
-
     if project is None:
         return redirect(url_for('home'))
+    # Let the other clients know.
+    socketio_server.onFileManipulation('rename', {'projectId': id})
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.sub(filename, new_filename, pad_name)
@@ -207,6 +203,8 @@ def delete_pad(id):
     if project is None:
         return redirect(url_for('home'))
 
+    # Let the other clients know.
+    socketio_server.onFileManipulation('delete', {'projectId': id})
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.match(filename, pad_name)
