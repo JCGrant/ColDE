@@ -521,7 +521,15 @@ var processExternalFileManipulation = function(manipulation) {
       var padName = manipulation['filename'];
       padById[padId].filename = padName;
     } else if (manipulation['type'] === 'delete') {
-      
+      // Remove the corresponding pad.
+      var padId = manipulation['padId'];
+      for (var i = 0; i < pads.length; ++i) {
+        if (pads[i].id == padId) {
+          console.log('splice happens!!!');
+          pads.splice(i, 1);
+          break;
+        }
+      }
     }
     // If other update than 'new', refresh file tree.
     refreshFileTree();
