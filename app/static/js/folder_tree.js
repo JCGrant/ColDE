@@ -128,58 +128,11 @@ function customMenu(node) {
       delete items.createItem;
       delete items.createFileItem;
     }
-    // No options on root folder.
+    // No rename / delete options on root folder.
     if (node.parent === '#') {
-      delete items.createItem;
-      delete items.createFileItem;
       delete items.renameItem;
       delete items.deleteItem; 
     }
 
     return items;
 }
-
-// function createEditorPad(pad) {
-//   console.log('before iniit ' + i);
-//   // Create holder text area.
-//   var textArea = document.createElement('textarea');
-//   editorAreas.appendChild(textArea);
-//   padTextArea[pad.id] = textArea;
-//   console.log('initialise ' + pad.id);
-//   // Create the editor instance.
-//   var editor = createEditor(pad["filename"])
-//   textArea.nextSibling.style.display = 'none';
-//   editor.on('change', function() {
-//     notClean = true;
-//   });
-//   // Configuration.
-//   editor.setOption('extraKeys', {
-//     Tab: function(cm) {
-//       var spaces = '    ';
-//       cm.replaceSelection(spaces);
-//     },
-//     "Ctrl-Space": "autocomplete"
-//   });
-
-//   // Functions managing interaction with the socketio_client.
-//   blockedOrigins = ['external', 'setValue', 'aux']
-//   editor.on('beforeChange', function(instance, changeset) {
-//     // Do not propagate the update if it was from a different client.
-//     if (changeset.hasOwnProperty('origin')
-//         && blockedOrigins.indexOf(changeset['origin']) >= 0) {
-//         return;
-//     }
-//     onBeforeChange(changeset);
-//   });
-  
-//   // TODO(mihai): add retrieved bookmark comments.
-//   // Add the editor to the mapping.
-//   padEditor[pad.id] = editor;
-//   // Wrap text updates in one atomic operation.
-//   editor.operation(function() {
-//     // Set the content of the created pad.
-//     editor.setValue(pad.text);
-//     // Detect comments and display them properly.
-//     detectComments(editor);
-//   });
-// }
