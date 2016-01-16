@@ -515,6 +515,14 @@ var processExternalFileManipulation = function(manipulation) {
     pad.csY = new Changeset(pad.text.length);
     padById[pad.id] = pad;
   } else {
+    if (manipulation['type'] === 'rename') {
+      // Update filename.
+      var padId = manipulation['padId'];
+      var padName = manipulation['filename'];
+      padById[padId].filename = padName;
+    } else if (manipulation['type'] === 'delete') {
+      
+    }
     // If other update than 'new', refresh file tree.
     refreshFileTree();
   }
