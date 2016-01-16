@@ -249,8 +249,16 @@ for (var i = 0; i < pads.length; ++i) {
   internalNewPad(pads[i]);
 }
 
+/// Editors to be removed on the text pad changing.
+var tempTextAreas = [];
+
 // Display the initial pad.
 var updateDisplayedPad = function(padId) {
+  // Remove temporary (previously deleted by someone) editors first.
+  for (var i = 0; i < tempTextAreas.length; ++i) {
+    tempTextAreas[i].nextSibling.style.display = 'none';
+  }
+  tempTextAreas = [];
   // Remove the instance already there, if it exists.
   if (displayedPad != -1) {
     padTextArea[displayedPad].nextSibling.style.display = 'none';
@@ -525,7 +533,8 @@ var processExternalFileManipulation = function(manipulation) {
       var padId = manipulation['padId'];
       for (var i = 0; i < pads.length; ++i) {
         if (pads[i].id == padId) {
-          console.log('splice happens!!!');
+          // Add this editor in the list of temporary ones.
+          tempTextAreas.push(padTextArea[pads[i].id]);
           pads.splice(i, 1);
           break;
         }
