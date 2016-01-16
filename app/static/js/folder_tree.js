@@ -68,6 +68,7 @@ tree.on("select_node.jstree", function(e, data) {
 
 var refreshFileTree = function() {
   tree.jstree("refresh");
+  tree.jstree("open_all");
 }
 
 function customMenu(node) {

@@ -119,7 +119,6 @@ def updateDBPad(changeset, crtRev):
 # Handles file manipulations from a client, broadcasts to the others.
 def onFileManipulation(type, content):
     content['type'] = type
-    print ('project is ' + str(content['projectId']))
     # Broadcast to clients in project room.
     socketio.emit('server_client_file_manipulation', 
         content, room=content['projectId'])

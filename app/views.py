@@ -90,16 +90,20 @@ def new_pad(id):
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
         filename = tree_mappings[int(parent)] + filename
-
+    # Check if valid project.
     if project is None:
         return redirect(url_for('home'))
-    # Let the other clients know.
-    socketio_server.onFileManipulation('new', {'projectId': id})
+    # Update DB.
     pad = Pad(filename, id)
     if file_type == 'filenode':
         pad.is_file = True
     db.session.add(pad)
     db.session.commit()
+    # Let the other clients know.
+    msg = {'projectId': id}
+    msg['padId'], msg['filename'] = pad.id, pad.filename
+    msg['text'], msg['baseRev'] = pad.text, pad.last_revision
+    socketio_server.onFileManipulation('new', msg)
     return redirect(url_for('project', id=id))
 
 @app.route('/project/<int:id>/pad/getPad', methods=['GET'])

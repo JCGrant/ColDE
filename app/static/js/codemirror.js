@@ -18,7 +18,7 @@ function runChooseButton() {
       break;
   }
 }
-function createEditor(filename) {
+function createEditor(filename, textArea) {
   var language = ""
   var split = filename.split(".");
   var ext = "";
@@ -199,15 +199,15 @@ var padEditor = {};
 /// Global variable to say whether any pad change has occured since last
 /// HTML refresh.
 var notClean = false;
-// Create code mirror instances for all pads.
-// TODO(mihai): remove this dependency.
-for (var i = 0; i < pads.length; ++i) {
+
+/// Updates internal structures to reflect a new pad.
+var internalNewPad = function(pad) {
   // Create holder text area.
   var textArea = document.createElement('textarea');
   editorAreas.appendChild(textArea);
-  padTextArea[pads[i].id] = textArea;
+  padTextArea[pad.id] = textArea;
   // Create the editor instance.
-  var editor = createEditor(pads[i]["filename"])
+  var editor = createEditor(pad['filename'], textArea);
   textArea.nextSibling.style.display = 'none';
   editor.on('change', function() {
     notClean = true;
@@ -234,14 +234,19 @@ for (var i = 0; i < pads.length; ++i) {
   
   // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
-  padEditor[pads[i].id] = editor;
+  padEditor[pad.id] = editor;
   // Wrap text updates in one atomic operation.
   editor.operation(function() {
     // Set the content of the created pad.
-    editor.setValue(pads[i].text);
+    editor.setValue(pad.text);
     // Detect comments and display them properly.
     detectComments(editor);
   });
+}
+// Create code mirror instances for all pads.
+// TODO(mihai): remove this dependency.
+for (var i = 0; i < pads.length; ++i) {
+  internalNewPad(pads[i]);
 }
 
 // Display the initial pad.
@@ -487,6 +492,33 @@ processExternalChangeset = function(padId, changeset) {
     }
   });
 };
+
+/**
+ * Reflects a file manipulation from another client internally.
+ */
+var processExternalFileManipulation = function(manipulation) {
+
+  if (manipulation['type'] === 'new') {
+    // Create new pad and insert it in the pads list.
+    pad = {
+      'id': manipulation['padId'],
+      'filename': manipulation['filename'],
+      'text': manipulation['text'],
+      'baseRev': manipulation['baseRev'],
+    };
+    pads.push(pad);
+    // Reflect internally the new pad.
+    internalNewPad(pad);
+    // Init changesets & padById.
+    pad.csA = new Changeset(pad.text.length);
+    pad.csX = new Changeset(pad.text.length);
+    pad.csY = new Changeset(pad.text.length);
+    padById[pad.id] = pad;
+  } else {
+    // If other update than 'new', refresh file tree.
+    refreshFileTree();
+  }
+}
 
 setPadContent = function(padId, content) {
   // Retrieve the editor instance.
