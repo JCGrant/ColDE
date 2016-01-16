@@ -123,9 +123,17 @@ function customMenu(node) {
             }
         }
     };
+    // Prevent adding children to file.
     if(node.original.type === 'file') {
-        delete items.createItem;
-        delete items.createFileItem;
+      delete items.createItem;
+      delete items.createFileItem;
+    }
+    // No options on root folder.
+    if (node.parent === '#') {
+      delete items.createItem;
+      delete items.createFileItem;
+      delete items.renameItem;
+      delete items.deleteItem; 
     }
 
     return items;
