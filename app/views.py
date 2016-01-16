@@ -225,7 +225,7 @@ def delete_pad(id):
 def construct_JSON(filenames, id):
     project = Project.query.get(id)
     id_count = 1
-    root = {"id": id_count, "text": "Root"}
+    root = {"id": id_count, "text": project.title}
     #Keeping the mappings
     id_count += 1
     if filenames:

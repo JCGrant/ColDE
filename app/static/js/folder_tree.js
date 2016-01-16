@@ -17,6 +17,7 @@ var tree = $("#container").jstree({
 	'plugins' : ["contextmenu"]
 });
 
+// Expand tree on both loaded & refresh.
 tree.on("loaded.jstree", function() {
   tree.jstree('open_all');
 });
