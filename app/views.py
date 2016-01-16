@@ -103,7 +103,6 @@ def new_pad(id):
     msg = {'projectId': id}
     msg['padId'], msg['filename'] = pad.id, pad.filename
     msg['text'], msg['baseRev'] = pad.text, pad.last_revision
-    print ('new pad ' + str(pad.id))
     socketio_server.onFileManipulation('new', msg)
     return redirect(url_for('project', id=id))
 
@@ -191,7 +190,6 @@ def rename_pad(id):
     # Let the other clients know.
     msg = {'projectId': id}
     msg['padId'], msg['filename'] = pad.id, pad.filename
-    print ('renamed ' + str(pad.id))
     socketio_server.onFileManipulation('rename', msg)
     return redirect(url_for('project', id=project.id))
 
@@ -218,7 +216,6 @@ def delete_pad(id):
             # Let the other clients know.
             msg = {'projectId': id}
             msg['padId'] = pad.id
-            print ('deleted ' + str(pad.id))
             socketio_server.onFileManipulation('delete', msg)
             # Remove from DB.
             db.session.delete(pad)
