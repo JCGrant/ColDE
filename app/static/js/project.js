@@ -28,20 +28,6 @@ function showConsole() {
   }
 }
 
-function closeConsole() {
-  if(document.getElementById("webview") != null) {
-    var editorview = document.getElementById("editorview");
-    var frameview = document.getElementById("frameview");
-    var child = document.getElementById("webview");
-    frameview.removeChild(webview);
-    editorview.className = "col-xs-8";
-    webViewOpen = false;
-    webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
-    $('#frameview').html('');
-    frameview.className = '';
-  }
-}
-
 $newUserSelect = $('#newUserSelect');
 $('#newUserButton').click(function() {
   $.get('/project/' + projectId + '/users_not_in_project/', function(data) {
@@ -54,3 +40,17 @@ $('#newUserButton').click(function() {
 });
 
 $newUserSelect.select2();
+
+function closeConsole() {
+  if(document.getElementById("webview") != null) {
+    var editorview = document.getElementById("editorview");
+    var frameview = document.getElementById("frameview");
+    var child = document.getElementById("webview");
+    frameview.removeChild(child);
+    editorview.className = "col-xs-8";
+    webViewOpen = false;
+    webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
+    $('#frameview').html('');
+    frameview.className = '';
+  }
+}
