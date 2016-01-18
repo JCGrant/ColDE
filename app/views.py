@@ -186,11 +186,11 @@ def rename_pad(id):
         if result != pad_name:
             pad = project.pads.filter_by(filename=pad_name).first()
             pad.filename = new_filename
+            # Let the other clients know.
+            msg = {'projectId': id}
+            msg['padId'], msg['filename'] = pad.id, pad.filename
+            socketio_server.onFileManipulation('rename', msg)
     db.session.commit()
-    # Let the other clients know.
-    msg = {'projectId': id}
-    msg['padId'], msg['filename'] = pad.id, pad.filename
-    socketio_server.onFileManipulation('rename', msg)
     return redirect(url_for('project', id=project.id))
 
 @app.route('/project/<int:id>/pad/delete', methods=['GET'])
