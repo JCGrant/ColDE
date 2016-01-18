@@ -38,6 +38,7 @@ def clientDisconnect(pads):
 @socketio.on('client_server_changeset')
 def handle(changeset):
     print ('Received ' + str(changeset))
+    print (len(changeset['charBank']))
     # Fetch project and pad ids.
     project_id = changeset['projectId']
     pad_id = changeset['padId']
@@ -110,11 +111,16 @@ def updateDBPad(changeset, crtRev):
         return
     # Update pad text content.
     pad.text = applyChangeset(pad.text, changeset)
+    print ('new text is ' + pad.text)
     # Update code of last revision.
     pad.last_revision = crtRev
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
+    pad = Pad.query.filter_by(project_id=changeset['projectId']).\
+        filter_by(id=changeset['padId']).first()
+    print ('new new text is ' + pad.text)
+    print ('new new text is ' + str(len(pad.text)))
 
 # Handles file manipulations from a client, broadcasts to the others.
 def onFileManipulation(type, content):

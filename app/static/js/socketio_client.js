@@ -49,20 +49,6 @@ var padById = {};
 /// Id of pad that is currently displayed.
 var displayedPad = -1;
 
-// Init pad list.
-for (var i = 0; i < pads.length; ++i) {
-  // Initialise csA, csX and csY to identity.
-  // Changeset containing only revisions received from the server
-  // or own ACKed revisions.
-  pads[i].csA = new Changeset(pads[i].text.length);
-  // Submitted composition of changesets to server, still waiting for ACK.
-  pads[i].csX = new Changeset(pads[i].text.length);
-  // Unsubmitted local composition of changes.
-  pads[i].csY = new Changeset(pads[i].text.length);
-  // Add the current pad in the mapping by id.
-  padById[pads[i].id] = pads[i];
-}
-
 socket.on('server_client_changeset', function(cs) {
   // Skip the changeset if it was issued by us.
   if (cs['clientId'] === userId) {

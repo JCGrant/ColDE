@@ -242,11 +242,35 @@ var internalNewPad = function(pad) {
     detectComments(editor);
   });
 }
-// Create code mirror instances for all pads.
-// TODO(mihai): remove this dependency.
-for (var i = 0; i < pads.length; ++i) {
-  internalNewPad(pads[i]);
-}
+
+// Request info about all pads.
+// TODO(mihai): keep this in jinja, avoid problems with escaping.
+var getContent = "/project/" + projectId + "/getAllPads";
+$.get(getContent, function(serverPads) {
+  pads = JSON.parse(serverPads);
+  // Create code mirror instances for all pads.
+  // TODO(mihai): remove this dependency.
+  for (var i = 0; i < pads.length; ++i) {
+    internalNewPad(pads[i]);
+  }
+  // Init pad list.
+  for (var i = 0; i < pads.length; ++i) {
+    // Initialise csA, csX and csY to identity.
+    // Changeset containing only revisions received from the server
+    // or own ACKed revisions.
+    pads[i].csA = new Changeset(pads[i].text.length);
+    // Submitted composition of changesets to server, still waiting for ACK.
+    pads[i].csX = new Changeset(pads[i].text.length);
+    // Unsubmitted local composition of changes.
+    pads[i].csY = new Changeset(pads[i].text.length);
+    // Add the current pad in the mapping by id.
+    padById[pads[i].id] = pads[i];
+  }
+  // Display the first pad on project loading.
+  if (pads.length > 0) {
+    updateDisplayedPad(pads[0].id);
+  }
+});
 
 /// Editors to be removed on the text pad changing.
 var tempTextAreas = [];
@@ -270,10 +294,6 @@ var updateDisplayedPad = function(padId) {
   // Focus editor.
   padEditor[padId].focus();
   displayedPad = padId;
-}
-// Display the first pad on project loading.
-if (pads.length > 0) {
-  updateDisplayedPad(pads[0].id);
 }
 
 function getCompletions(token, context) {

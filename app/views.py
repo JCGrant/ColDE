@@ -274,3 +274,17 @@ def files_JSON(id):
     pads_filenames = [pad.filename for pad in project.pads]
     result = construct_JSON(pads_filenames, id)
     return json.dumps(result)
+
+@app.route('/project/<int:id>/getAllPads', methods=['GET'])
+@login_required
+def getAllPads(id):
+    project = Project.query.get(id)
+    allPads = []
+    for pad in project.pads:
+        crtPad = {}
+        crtPad['id'] = pad.id
+        crtPad['filename'] = pad.filename
+        crtPad['text'] = pad.text
+        crtPad['baseRev'] = pad.last_revision
+        allPads.append(crtPad)
+    return json.dumps(allPads)
