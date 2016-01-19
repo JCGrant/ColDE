@@ -236,6 +236,7 @@ def construct_JSON(filenames, id):
                 if x != paths[len(paths) - 1]:
                     current_path += "/"
                 else:
+                    print (filename)
                     pad = project.pads.filter_by(filename=current_path).first()
                     if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
