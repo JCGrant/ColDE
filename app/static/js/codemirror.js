@@ -18,7 +18,7 @@ function runChooseButton() {
       break;
   }
 }
-function createEditor(filename) {
+function createEditor(filename, textArea) {
   var language = ""
   var split = filename.split(".");
   var ext = "";
@@ -130,7 +130,6 @@ var displayComment = function(comment) {
   // element.setAttribute('data-trigger', 'focus');
   // TODO(mihai): set placement according to width / height.
   element.setAttribute('data-placement', 'top');
-  console.log('comment is ' + comment['text']);
   element.setAttribute('data-content', comment['text']);
   element.id = 'comment' + commentId;
   // Save current comment id.
@@ -147,7 +146,7 @@ var displayComment = function(comment) {
   myMarkers.push([marker, true]);
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover();
+    $('[data-toggle="popover"]').popover({container: 'body'});
   });
   // Return current comment id.
   return '#comment'+usedId;
@@ -199,15 +198,15 @@ var padEditor = {};
 /// Global variable to say whether any pad change has occured since last
 /// HTML refresh.
 var notClean = false;
-// Create code mirror instances for all pads.
-// TODO(mihai): remove this dependency.
-for (var i = 0; i < pads.length; ++i) {
+
+/// Updates internal structures to reflect a new pad.
+var internalNewPad = function(pad) {
   // Create holder text area.
   var textArea = document.createElement('textarea');
   editorAreas.appendChild(textArea);
-  padTextArea[pads[i].id] = textArea;
+  padTextArea[pad.id] = textArea;
   // Create the editor instance.
-  var editor = createEditor(pads[i]["filename"])
+  var editor = createEditor(pad['filename'], textArea);
   textArea.nextSibling.style.display = 'none';
   editor.on('change', function() {
     notClean = true;
@@ -234,18 +233,55 @@ for (var i = 0; i < pads.length; ++i) {
   
   // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
-  padEditor[pads[i].id] = editor;
+  padEditor[pad.id] = editor;
   // Wrap text updates in one atomic operation.
   editor.operation(function() {
     // Set the content of the created pad.
-    editor.setValue(pads[i].text);
+    editor.setValue(pad.text);
     // Detect comments and display them properly.
     detectComments(editor);
   });
 }
 
+// Request info about all pads.
+// TODO(mihai): keep this in jinja, avoid problems with escaping.
+var getContent = "/project/" + projectId + "/getAllPads";
+$.get(getContent, function(serverPads) {
+  pads = JSON.parse(serverPads);
+  // Create code mirror instances for all pads.
+  // TODO(mihai): remove this dependency.
+  for (var i = 0; i < pads.length; ++i) {
+    internalNewPad(pads[i]);
+  }
+  // Init pad list.
+  for (var i = 0; i < pads.length; ++i) {
+    // Initialise csA, csX and csY to identity.
+    // Changeset containing only revisions received from the server
+    // or own ACKed revisions.
+    pads[i].csA = new Changeset(pads[i].text.length);
+    // Submitted composition of changesets to server, still waiting for ACK.
+    pads[i].csX = new Changeset(pads[i].text.length);
+    // Unsubmitted local composition of changes.
+    pads[i].csY = new Changeset(pads[i].text.length);
+    // Add the current pad in the mapping by id.
+    padById[pads[i].id] = pads[i];
+  }
+  // Display the first pad on project loading.
+  if (pads.length > 0) {
+    updateDisplayedPad(pads[0].id);
+  }
+});
+
+/// Editors to be removed on the text pad changing.
+var tempTextAreas = [];
+
 // Display the initial pad.
 var updateDisplayedPad = function(padId) {
+  // Remove temporary (previously deleted by someone) editors first.
+  for (var i = 0; i < tempTextAreas.length; ++i) {
+    tempTextAreas[i].nextSibling.style.display = 'none';
+  }
+  tempTextAreas = [];
   // Remove the instance already there, if it exists.
   if (displayedPad != -1) {
     padTextArea[displayedPad].nextSibling.style.display = 'none';
@@ -258,10 +294,6 @@ var updateDisplayedPad = function(padId) {
   // Focus editor.
   padEditor[padId].focus();
   displayedPad = padId;
-}
-// Display the first pad on project loading.
-if (pads.length > 0) {
-  updateDisplayedPad(pads[0].id);
 }
 
 function getCompletions(token, context) {
@@ -487,6 +519,50 @@ processExternalChangeset = function(padId, changeset) {
     }
   });
 };
+
+/**
+ * Reflects a file manipulation from another client internally.
+ */
+var processExternalFileManipulation = function(manipulation) {
+
+  if (manipulation['type'] === 'new') {
+    // Create new pad and insert it in the pads list.
+    pad = {
+      'id': manipulation['padId'],
+      'filename': manipulation['filename'],
+      'text': manipulation['text'],
+      'baseRev': manipulation['baseRev'],
+    };
+    pads.push(pad);
+    // Reflect internally the new pad.
+    internalNewPad(pad);
+    // Init changesets & padById.
+    pad.csA = new Changeset(pad.text.length);
+    pad.csX = new Changeset(pad.text.length);
+    pad.csY = new Changeset(pad.text.length);
+    padById[pad.id] = pad;
+  } else {
+    if (manipulation['type'] === 'rename') {
+      // Update filename.
+      var padId = manipulation['padId'];
+      var padName = manipulation['filename'];
+      padById[padId].filename = padName;
+    } else if (manipulation['type'] === 'delete') {
+      // Remove the corresponding pad.
+      var padId = manipulation['padId'];
+      for (var i = 0; i < pads.length; ++i) {
+        if (pads[i].id == padId) {
+          // Add this editor in the list of temporary ones.
+          tempTextAreas.push(padTextArea[pads[i].id]);
+          pads.splice(i, 1);
+          break;
+        }
+      }
+    }
+    // If other update than 'new', refresh file tree.
+    refreshFileTree();
+  }
+}
 
 setPadContent = function(padId, content) {
   // Retrieve the editor instance.

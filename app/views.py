@@ -1,6 +1,6 @@
 from flask import render_template, redirect, flash, url_for, g, request, jsonify
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from app import app, db, lm
+from app import app, db, lm, socketio_server
 from .models import User, Project, Pad
 from .forms import LoginForm
 import json
@@ -34,8 +34,6 @@ def register():
             return redirect(url_for('home'))
     return render_template('login.html',
                            form=form, title='Register')
-
-
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -88,22 +86,24 @@ def new_pad(id):
     parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
     file_type = request.args.get('type', 'filenode')
-
-
-    #print ("\n\n\n\n\n" + parent + "\n\n\n\n\n")
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
         filename = tree_mappings[int(parent)] + filename
-
-    project = Project.query.get(id)
+    # Check if valid project.
     if project is None:
         return redirect(url_for('home'))
+    # Update DB.
     pad = Pad(filename, id)
     if file_type == 'filenode':
         pad.is_file = True
     db.session.add(pad)
     db.session.commit()
+    # Let the other clients know.
+    msg = {'projectId': id}
+    msg['padId'], msg['filename'] = pad.id, pad.filename
+    msg['text'], msg['baseRev'] = pad.text, pad.last_revision
+    socketio_server.onFileManipulation('new', msg)
     return redirect(url_for('project', id=id))
 
 @app.route('/project/<int:id>/pad/getPad', methods=['GET'])
@@ -114,7 +114,6 @@ def get_pad(id):
     if project is None:
         return redirect(url_for('home'))
     filename = tree_mappings[int(node_id)]
-    #print("\n\n\n\n" + filename + "\n\n\n\n")
     pad = project.pads.filter_by(filename=filename).first()
     result = {}
     if pad is None:
@@ -178,17 +177,19 @@ def rename_pad(id):
         new_filename = tree_mappings[int(parent)] + new_filename
     project = Project.query.get(id)
 
-    #print ("\n\n\n\n\n" + filename + " " + new_filename + "\n\n\n\n\n")
-
     if project is None:
         return redirect(url_for('home'))
+    # Let the other clients know.
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.sub(filename, new_filename, pad_name)
-        #print ("\n\n\n\n\n" + pad_name + "\n\n\n\n\n")
         if result != pad_name:
             pad = project.pads.filter_by(filename=pad_name).first()
             pad.filename = new_filename
+            # Let the other clients know.
+            msg = {'projectId': id}
+            msg['padId'], msg['filename'] = pad.id, pad.filename
+            socketio_server.onFileManipulation('rename', msg)
     db.session.commit()
     return redirect(url_for('project', id=project.id))
 
@@ -210,9 +211,13 @@ def delete_pad(id):
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
         result = re.match(filename, pad_name)
-        print ("\n\n\n\n\n" + filename + " " + pad_name + "\n\n\n\n\n")
         if result:
             pad = project.pads.filter_by(filename=pad_name).first()
+            # Let the other clients know.
+            msg = {'projectId': id}
+            msg['padId'] = pad.id
+            socketio_server.onFileManipulation('delete', msg)
+            # Remove from DB.
             db.session.delete(pad)
     db.session.commit()
     return redirect(url_for('project', id=project.id))
@@ -220,7 +225,7 @@ def delete_pad(id):
 def construct_JSON(filenames, id):
     project = Project.query.get(id)
     id_count = 1
-    root = {"id": id_count, "text": "Root"}
+    root = {"id": id_count, "text": project.title}
     #Keeping the mappings
     id_count += 1
     if filenames:
@@ -237,7 +242,6 @@ def construct_JSON(filenames, id):
                     current_path += "/"
                 else:
                     pad = project.pads.filter_by(filename=current_path).first()
-                    print ("\n\n\n\n\n\n\n\n" + current_path + "\n\n\n\n\n\n\n\n")
                     if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
                         step['type'] = 'file'
@@ -258,11 +262,6 @@ def construct_JSON(filenames, id):
                     if not exists:
                         current_location['children'].append(step)
 
-                ''' print ("\n\n\n\n\n\n")
-                print (json.dumps(current_location))
-                print("\n\n\n\n\n\n\n")
-                '''
-
                 if x != paths[len(paths) - 1] and not exists:
                     current_location = current_location['children']
                     current_location = current_location[len(current_location) - 1]
@@ -275,3 +274,17 @@ def files_JSON(id):
     pads_filenames = [pad.filename for pad in project.pads]
     result = construct_JSON(pads_filenames, id)
     return json.dumps(result)
+
+@app.route('/project/<int:id>/getAllPads', methods=['GET'])
+@login_required
+def getAllPads(id):
+    project = Project.query.get(id)
+    allPads = []
+    for pad in project.pads:
+        crtPad = {}
+        crtPad['id'] = pad.id
+        crtPad['filename'] = pad.filename
+        crtPad['text'] = pad.text
+        crtPad['baseRev'] = pad.last_revision
+        allPads.append(crtPad)
+    return json.dumps(allPads)

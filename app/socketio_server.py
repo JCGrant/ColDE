@@ -100,7 +100,7 @@ def onNewComment(comment):
 @socketio.on('client_server_chat_message')
 def chatMessage(message):
     text = message['text']
-    emit('server_client_chat_message', text, room = message['projectId'])
+    emit('server_client_chat_message', text, room=message['projectId'])
 
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset, crtRev):
@@ -115,6 +115,21 @@ def updateDBPad(changeset, crtRev):
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
+    pad = Pad.query.filter_by(project_id=changeset['projectId']).\
+        filter_by(id=changeset['padId']).first()
+
+# Handles file manipulations from a client, broadcasts to the others.
+def onFileManipulation(type, content):
+    content['type'] = type
+    # Remove revisions if needed.
+    if type == 'delete':
+        if content['projectId'] in revisions and \
+            content['padId'] in revisions[content['projectId']]:
+            del revisions[content['projectId']][content['padId']]
+    # Broadcast to clients in project room.
+    socketio.emit('server_client_file_manipulation', 
+        content, room=content['projectId'])
+
 
 ############### Changeset manipulation functions. #################
 
