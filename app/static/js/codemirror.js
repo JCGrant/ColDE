@@ -254,6 +254,8 @@ var internalNewPad = function(pad) {
     editor.setValue(pad.text);
     // Detect comments and display them properly.
     detectComments(editor);
+    // Clear history after initial version is set.
+    editor.clearHistory();
   });
 }
 
