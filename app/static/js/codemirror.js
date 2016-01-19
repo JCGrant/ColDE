@@ -146,7 +146,7 @@ var displayComment = function(comment) {
   myMarkers.push([marker, true]);
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover({container: 'body'});
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
   });
   // Return current comment id.
   return '#comment'+usedId;
@@ -231,18 +231,18 @@ var internalNewPad = function(pad) {
     onBeforeChange(changeset);
   });
 
-  editor.on('change', function(instance, changeset) {
+  editor.on('update', function(instance, changeset) {
     // After change, update the position of showing comments.
-    // for (var i = 0; i < commentId; ++i) {
-    //   var id = '#comment' + i;
-    //   // If shown, show it again.
-    //   var comment = $(id);
-    //   console.log('---' + comment);
-    //   if (comment.length > 0 
-    //     && comment[0].data('bs.popover').tip().hasClass('in')) {
-    //     comment.popover('show');
-    //   }
-    // }
+    for (var i = 0; i < commentId; ++i) {
+      var id = '#comment' + i;
+      // If shown, show it again.
+      var comment = $(id);
+      if (typeof(comment) !== 'undefined' 
+        && typeof(comment.data('bs.popover')) !== 'undefined'
+        && comment.data('bs.popover').tip().hasClass('in')) {
+        comment.popover('show');
+      }
+    }
   });
   
   // TODO(mihai): add retrieved bookmark comments.
@@ -285,7 +285,7 @@ $.get(getContent, function(serverPads) {
     updateDisplayedPad(pads[0].id);
   }
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover({container: 'body'});
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
   });
 });
 
@@ -529,7 +529,7 @@ processExternalChangeset = function(padId, changeset) {
   });
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover({container: 'body'});
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
     // Popup required comments.
     for (var i = 0; i < ids.length; ++i) {
       $(ids[i]).popover('show');
