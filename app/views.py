@@ -162,10 +162,6 @@ def rename_pad(id):
     filename = request.args.get('filename', 'new_file')
     new_filename = request.args.get('new', 'new_file')
 
-    is_file = False
-    if "." in new_filename:
-        is_file = True
-
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
@@ -180,17 +176,16 @@ def rename_pad(id):
     if project is None:
         return redirect(url_for('home'))
     # Let the other clients know.
-    pads_filenames = [pad.filename for pad in project.pads]
-    for pad_name in pads_filenames:
-        result = re.sub(filename, new_filename, pad_name)
-        if result != pad_name:
-            pad = project.pads.filter_by(filename=pad_name).first()
-            pad.filename = new_filename
-            # Let the other clients know.
-            msg = {'projectId': id}
-            msg['padId'], msg['filename'] = pad.id, pad.filename
-            socketio_server.onFileManipulation('rename', msg)
+    for pad in project.pads:
+        result = re.sub(filename, new_filename, pad.filename)
+        pad.filename = result
+        # Let the other clients know.
+        msg = {'projectId': id}
+        msg['padId'], msg['filename'] = pad.id, pad.filename
+        socketio_server.onFileManipulation('rename', msg)
     db.session.commit()
+    for pad in project.pads:
+        print ("\n\n\n\n" + pad.filename)
     return redirect(url_for('project', id=project.id))
 
 @app.route('/project/<int:id>/pad/delete', methods=['GET'])
