@@ -7,6 +7,7 @@ body {
 }
 
 #messages { list-style-type: none; margin: 0; padding: 0;
+
   height: calc(100vh - 50px - 34px);
   overflow: auto;
 }
@@ -29,8 +30,17 @@ body {
   height: calc(100vh - 50px);
 }
 
+#frameview {
+  width: auto;
+}
+
 #editorAreas {
   height: 85%;
+}
+
+#pulamea{
+  position: absolute;
+  right: 0;
 }
 
 #output {

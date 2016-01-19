@@ -1,12 +1,15 @@
 webViewOpen = false;
 var webViewToggleButton = $("#toggleWebView");
 
+
 function toggleWebView() {
   if (webViewOpen) {
     closeConsole();
+    closeResize();
   } else {
     notClean = true;
     showConsole();
+    openResize();
   }
 }
 

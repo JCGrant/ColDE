@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/CodeMirror/theme/monokai.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/lib/themes/default/style.min.css"/>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
 
     <script src="/static/js/lib/codemirror.js"></script>
     <script src="/static/CodeMirror/addon/hint/javascript-hint.js"></script>
@@ -30,6 +31,41 @@
     <script src="/static/CodeMirror/mode/xml/xml.js"></script>
     <script src="/static/CodeMirror/mode/htmlmixed/htmlmixed.js"></script>
     <script src="/static/CodeMirror/keymap/sublime.js"></script> 
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+    <script>
+      var total = $("#editorview").width() + $("#frameview").width();
+      $("#editorview").on('resize', function(){
+          $('#webview').width(total - $(this).width());
+      });
+
+      function openResize() {
+          $("#editorview").resizable({
+               handles: 'e',
+              start: function(){
+              ifr = $('#webview');
+              var d = $('<div></div>');
+
+              $('#frameview').append(d[0]);
+              d[0].id = 'temp_div';
+              d.css({position:'absolute'});
+              d.css({top: ifr.position().top, left:0});
+              d.height(ifr.height());
+              d.width('100%');
+            },
+            stop: function(){
+              $('#temp_div').remove();
+            }
+          });
+          $("#editorview").resizable('enable');
+      }
+      function closeResize() {
+          $("#editorview").resizable('disable');
+      }
+      $('#editorview').onresize
+    </script>
 
   </head>
   <body>  
@@ -108,12 +144,16 @@
         <div id="container" class="col-xs-2">
           
         </div>
-        <div id="editorview" class="col-xs-8">
-          <div id="editorAreas"></div>
-          <pre id="output">Output</pre> 
+        <div>
+          <div id="parent">
+            <div id="editorview" class="col-xs-8">
+              <div id="editorAreas"></div>
+              <pre id="output">Output</pre>  
+            </div>
+            <div id="frameview"></div>
+          </div>
         </div>
-        <div id="frameview"></div>
-        <div class="col-xs-2">
+        <div id = "pulamea" class="col-xs-2" style="border-left:1px solid #000;height:100%">
           <ul id="messages"></ul>
           <form id="chat" action="">
             <input class="form-control" autocomplete="off" placeholder="Type a message...">
@@ -148,7 +188,6 @@
     <script>
       var current_user = "{{ current_user.username }}";
     </script>
-    <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/skulpt.min.js"></script>
     <script src="/static/js/lib/skulpt-stdlib.js"></script>
     <script src="/static/js/lib/select2.full.min.js"></script>
