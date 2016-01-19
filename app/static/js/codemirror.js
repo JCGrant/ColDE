@@ -146,7 +146,7 @@ var displayComment = function(comment) {
   myMarkers.push([marker, true]);
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover();
+    $('[data-toggle="popover"]').popover({container: 'body'});
   });
   // Return current comment id.
   return '#comment'+usedId;
