@@ -139,11 +139,28 @@ def get_pad(id):
 
 @app.route('/project/<int:id>/users_not_in_project/')
 @login_required
-def get_users(id):
+def get_non_users(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
     users = [u for u in User.query.all() if u not in project.users]
+    user_dicts = {'users':
+        [
+            {
+                'id': u.id,
+                'username': u.username
+            } for u in users]
+    }
+    return jsonify(user_dicts)
+
+@app.route('/project/<int:id>/users/')
+@login_required
+def get_users(id):
+    project = Project.query.get(id)
+    current_user = request.args.get("user")
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    users = [u for u in User.query.all() if u in project.users and u.username != current_user]
     user_dicts = {'users':
         [
             {
@@ -164,7 +181,32 @@ def add_users(id):
         user = User.query.filter_by(username=username).first()
         project.users.append(user)
     db.session.commit()
-    return redirect(url_for('project', id=id)) 
+    return redirect(url_for('project', id=id))
+
+@app.route('/project/<int:id>/del_users/', methods=['GET'])
+@login_required
+def del_users(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    usernames = request.args.getlist('username')
+    for username in usernames:
+        user = User.query.filter_by(username=username).first()
+        project.users.remove(user)
+    db.session.commit()
+    return redirect(url_for('project', id=id))
+
+@app.route('/project/<int:id>/leave_project', methods=['GET'])
+@login_required
+def leave_project(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    project.users.remove(user)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 @app.route('/project/<int:id>/pad/rename', methods=['GET'])
 @login_required

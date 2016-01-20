@@ -36,11 +36,7 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery_add_ons.js"></script>
     <script>
-
-      // var total = $("#editorview").width() + $("#frameview").width();
-      // $("#editorview").on('resize', function(){
-      //     $('#webview').width(total - $(this).width());
-      // });
+      var current_user = "{{ current_user.username }}";
 
       function openResize() {
           $("#editorview").resizable({
@@ -88,7 +84,16 @@
           <ul class="nav navbar-nav">
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
-            <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
+            <li class="dropdown">
+                <a id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Dropdown trigger
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dLabel">
+                    <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-plus-sign"></span></a></li>
+                    <li><a id='delUserButton' href="#" data-toggle="modal" data-target="#delUserModal">Remove Users <span class="glyphicon glyphicon-minus-sign"></span></a></li>
+                    <li><a id='leaveButton' href="#" onclick="leaveProject(current_user)">Leave project<span class="glyphicon glyphicon-off"></span></a></li>
+                </ul>
             <li><a href="#" data-toggle="modal" data-target="#addCommentModal">Add Comment <span class="glyphicon glyphicon-text-background"></span></a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -110,6 +115,28 @@
             <div class="modal-body">
                 <label for="name">Please select the users you want to add</label><br>
                 <select id="newUserSelect" multiple style="width: 100%;" name='username'>
+                </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="delUserModal" tabindex="-1" role="dialog" aria-labelledby="delUserModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="delUserModalLabel">All User</h4>
+          </div>
+          <form action='del_users'>
+            <div class="modal-body">
+                <label for="name">Please select the users you want to remove</label><br>
+                <select id="delUserSelect" multiple style="width: 100%;" name='username'>
                 </select>
             </div>
             <div class="modal-footer">
@@ -156,7 +183,7 @@
             <div id="frameview"></div>
           </div>
         </div>
-        <div id = "pulamea" class="col-xs-2" style="border-left:1px solid #000;height:100%">
+        <div id = "right_side" class="col-xs-2" style="border-left:1px solid #000;height:100%">
           <ul id="messages"></ul>
           <form id="chat" action="">
             <input class="form-control" autocomplete="off" placeholder="Type a message...">
@@ -187,9 +214,6 @@
               };
             {% endfor %}
         {% endfor %}
-    </script>
-    <script>
-      var current_user = "{{ current_user.username }}";
     </script>
     <script src="/static/js/lib/skulpt.min.js"></script>
     <script src="/static/js/lib/skulpt-stdlib.js"></script>
