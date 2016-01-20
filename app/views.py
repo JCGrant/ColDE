@@ -9,6 +9,8 @@ import re
 tree_mappings = {}
 tree_mappings[1] = "/"
 
+DEFAULT_FILENAME = 'New File'
+
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -86,7 +88,7 @@ def project(id):
 @login_required
 def new_pad(id):
     parent = request.args.get('parent', 1)  
-    filename = request.args.get('filename', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
     file_type = request.args.get('type', 'filenode')
     project = Project.query.get(id)
     if int(parent) != 1:
@@ -225,8 +227,8 @@ def leave_project(id):
 @login_required
 def rename_pad(id):
     parent = request.args.get('parent', 1)
-    filename = request.args.get('filename', 'new_file')
-    new_filename = request.args.get('new', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
+    new_filename = request.args.get('new', DEFAULT_FILENAME)
 
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
@@ -259,7 +261,7 @@ def rename_pad(id):
 @login_required
 def delete_pad(id):
     parent = request.args.get('parent', 1)
-    filename = request.args.get('filename', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
 
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
