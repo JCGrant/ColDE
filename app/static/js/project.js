@@ -78,3 +78,10 @@ $('#delUserButton').click(function() {
 
 $newUserSelect.select2();
 $delUserSelect.select2();
+
+$('.delete-project-button').click(function() {
+  var p_id = $(this).data('p_id');
+  $.get('/project/' + p_id + '/delete/', function(data) {
+    window.location.href = '/project/' + projectId;
+  });
+});

@@ -82,6 +82,16 @@ def new_project():
     db.session.commit()
     return redirect(url_for('new_pad', id=project.id))
 
+@app.route('/project/<int:id>/delete/', methods=['GET'])
+@login_required
+def delete_project(id):
+    project = Project.query.get(id)
+    for user in project.users:
+        user.projects.remove(project)
+    db.session.delete(project)
+    db.session.commit()
+    return redirect(url_for('home'))
+
 @app.route('/project/<int:id>/')
 @login_required
 def project(id):

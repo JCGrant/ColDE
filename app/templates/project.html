@@ -154,7 +154,7 @@
                   <label for="name">Which project would you like to open?</label>
                   <table class='table table-striped' style='width:100%'>
                   {% for project in current_user.projects.all() %}
-                  <tr><td><a href='/project/{{ project.id }}'>{{ project.title }}</a></td></tr>
+                  <tr><td><a href='/project/{{ project.id }}'>{{ project.title }}</a><button class='btn btn-danger pull-right delete-project-button' data-p_id={{ project.id }}>Delete</button></td></tr>
                   {% endfor %}
                   </table>
                 </div>
