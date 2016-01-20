@@ -152,11 +152,11 @@
           <div class="modal-body">
                 <div class="form-group">
                   <label for="name">Which project would you like to open?</label>
-                  <ul>
+                  <table class='table table-striped' style='width:100%'>
                   {% for project in current_user.projects.all() %}
-                    <li><h3><a href='/project/{{ project.id }}'>{{ project.title }}</a></h3></li>
+                  <tr><td><a href='/project/{{ project.id }}'>{{ project.title }}</a></td></tr>
                   {% endfor %}
-                  </ul>
+                  </table>
                 </div>
           </div>
           <div class="modal-footer">
