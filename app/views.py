@@ -33,7 +33,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             login_user(user, remember=True)
-            return redirect(url_for('new_project'))
+            return redirect(url_for('home'))
     return render_template('register.html',
                            form=form, title='Register')
 
@@ -61,7 +61,15 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    return redirect(url_for('project', id=g.user.most_recent_project_id))
+    most_recent_project_id=g.user.most_recent_project_id
+    if most_recent_project_id is None:
+        return redirect(url_for('new_project'))
+    project = Project.query.get(most_recent_project_id)
+    if project is None:
+        project = g.user.projects.first()
+    if project is None:
+        return redirect(url_for('new_project'))
+    return redirect(url_for('project', id=project.id))
 
 @app.route('/project/new/', methods=['GET'])
 @login_required
