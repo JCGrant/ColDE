@@ -12,6 +12,12 @@ users = db.Table('users',
     db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
 )
 
+
+owners = db.Table('owners',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
+)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50))
@@ -55,6 +61,8 @@ class Classroom(db.Model):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
+    owners = db.relationship('User', secondary=owners,
+            backref=db.backref('owned_projects', lazy='dynamic'))
     users = db.relationship('User', secondary=users,
             backref=db.backref('projects', lazy='dynamic'))
     pads = db.relationship('Pad', backref='project', lazy='dynamic')

@@ -38,6 +38,7 @@
     <script>
       var current_user = "{{ current_user.username }}";
 
+
       function openResize() {
           $("#editorview").resizable({
                handles: 'e',
@@ -84,16 +85,18 @@
           <ul class="nav navbar-nav">
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
-            <li class="dropdown">
-                <a id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Dropdown trigger
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="dLabel">
+            {% if current_user in project.owners %}
+              <li class="dropdown">
+                  <a id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Admin Menu
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="dLabel">
                     <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-plus-sign"></span></a></li>
                     <li><a id='delUserButton' href="#" data-toggle="modal" data-target="#delUserModal">Remove Users <span class="glyphicon glyphicon-minus-sign"></span></a></li>
-                    <li><a id='leaveButton' href="#" onclick="leaveProject(current_user)">Leave project<span class="glyphicon glyphicon-off"></span></a></li>
-                </ul>
+                    <li><a id='leaveButton' href="#" data-toggle="modal" data-target="#leaveProjectModal">Leave Project <span class="glyphicon glyphicon-off"></span></a></li>
+                  </ul>
+            {% endif %}
             <li><a href="#" data-toggle="modal" data-target="#addCommentModal">Add Comment <span class="glyphicon glyphicon-text-background"></span></a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -113,6 +116,9 @@
           </div>
           <form action='add_users'>
             <div class="modal-body">
+                <input type = "checkbox" name='makeadmins'>
+                <label for="name">Do you want them to be admins?</label>
+                <br>
                 <label for="name">Please select the users you want to add</label><br>
                 <select id="newUserSelect" multiple style="width: 100%;" name='username'>
                 </select>
@@ -147,6 +153,32 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="leaveProjectModal" tabindex="-1" role="dialog" aria-labelledby="delUserModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="delUserModalLabel">Leave Project</h4>
+          </div>
+          <form action='leave_project'>
+            <div class="modal-body">
+              {%if project.owners|length == 1 and current_user in project.owners%}
+              <label for="name">You are the last admin. If you leave, the project will be deleted. <br> Are you sure?</label><br>
+              {%else%}
+              <label for="name">Are you sure you want to leave?</label><br>
+              {%endif%}
+              <input name='username' value='{{ current_user.username }}' type ='hidden'>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+              <input type="submit" class="btn btn-danger" value="Yes">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
 
     <div class="modal fade" id="addCommentModal" tabindex="-1" role="dialog" aria-labelledby="addCommentModalLabel">
       <div class="modal-dialog" role="document">
