@@ -82,9 +82,7 @@ socket.on('server_client_changeset', function(cs) {
   processExternalChangeset(cs['padId'], D);
 });
 
-// TODO(mihai): check how to use a socket.io callback for this.
 socket.on('server_client_ack', function(padId) {
-  // TODO(mihai): update editor content.
   // Update changesets.
   var pad = padById[padId];
   pad.csA = pad.csA.applyChangeset(pad.csX);

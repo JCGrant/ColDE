@@ -97,7 +97,6 @@ class Comment(db.Model):
         return self.text
 
 # Class to represent a user revision.
-# TODO(mihai): maybe put it in a separate file. Not really a model (yet).
 class Revision:
     def __init__(self, id, changeset):
         self.id = id
