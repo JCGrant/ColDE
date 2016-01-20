@@ -2,11 +2,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db
 
-#user_classroom = db.Table('user_classroom',
-#    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-#    db.Column('classroom_id', db.Integer, db.ForeignKey('classroom.id')),
-#)
-
 users = db.Table('users',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
@@ -45,13 +40,6 @@ class User(db.Model):
 
     def __repr__(self):
         return self.username
-
-class Classroom(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120))
-
-    def __repr__(self):
-        return self.title
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
