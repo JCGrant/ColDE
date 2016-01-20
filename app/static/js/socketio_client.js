@@ -117,7 +117,8 @@ var onBeforeChange = function(changeset) {
     // Save history to be restored later.
     var h = displayedEditor.getHistory();
     // Add bookmarks for easy position tracking.
-    var fromMarker = displayedEditor.setBookmark(changeset['from'], {'insertLeft': true});
+    var fromMarker = displayedEditor.setBookmark(
+      changeset['from'], {'insertLeft': true});
     var toMarker = displayedEditor.setBookmark(changeset['to']);
     console.log(JSON.stringify(changeset['from']));
     console.log(JSON.stringify(changeset['to']));
