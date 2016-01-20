@@ -7,7 +7,6 @@ from math import inf as infinity
 from copy import deepcopy
 
 # Lock to ensure no more than one client update is processed at a time.
-# TODO(mihai): check if this is fine.
 update_locks = {}
 # List of revisions for the current file. It should be empty each time the
 # file is loaded from the database (revisions are not persistent).
@@ -45,7 +44,6 @@ def handle(changeset):
     if project_id not in update_locks:
         update_locks[project_id] = Lock()
     update_lock = update_locks[project_id]
-    # TODO(mihai): update server state.
     with update_lock:
         # Fetch next revision number.
         if project_id not in revisions:

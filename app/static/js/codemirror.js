@@ -1,63 +1,3 @@
-$("#runButton").click(runChooseButton);
-function runChooseButton() {
-  var split = getCurrentPad().split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  switch(ext) {
-    case "js":
-      runJScode()
-      break;
-    case "py":
-      runit()
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-  }
-}
-function createEditor(filename, textArea) {
-  var language = ""
-  var split = filename.split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  var tabSize = 2
-  switch(ext) {
-    case "js":
-      language = "javascript"
-      break;
-    case "py":
-      language = "python"
-      tabSize = 4
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-    case "css":
-      language = "css"
-      break;
-  }
-
-  var editor = CodeMirror.fromTextArea(textArea, {
-    lineNumbers: true,
-    mode: {name: language, globalVars: true},
-    keyMap: "sublime",
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    showCursorWhenSelecting: true,
-    theme: 'monokai',
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    tabSize: tabSize,
-  });
-
-  return editor;
-}
 
 /**
  * Refresh HTML visualised if currently displayed pad is HTML, and it has been
@@ -262,6 +202,68 @@ var internalNewPad = function(pad) {
   });
   // Clear history after initial version is set.
   editor.clearHistory();
+}
+
+// Add functionality to the run button.
+$("#runButton").click(runChooseButton);
+function runChooseButton() {
+  var split = getCurrentPad().split("."), ext = "";
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide what language is run.
+  switch(ext) {
+    case "js":
+      runJScode()
+      break;
+    case "py":
+      runit()
+      break;
+    case "html":
+      language = "htmlmixed"
+      break;
+  }
+}
+function createEditor(filename, textArea) {
+  var language = "", ext = "";
+  var split = filename.split(".");
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide language for syntax highlighting and the tab size.
+  var tabSize = 2;
+  switch(ext) {
+    case "js":
+      language = "javascript";
+      break;
+    case "py":
+      language = "python";
+      tabSize = 4;
+      break;
+    case "html":
+      language = "htmlmixed";
+      break;
+    case "css":
+      language = "css";
+      break;
+  }
+  // Create the editor.
+  var editor = CodeMirror.fromTextArea(textArea, {
+    lineNumbers: true,
+    mode: {name: language, globalVars: true},
+    keyMap: "sublime",
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    showCursorWhenSelecting: true,
+    theme: 'monokai',
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    tabSize: tabSize,
+  });
+
+  return editor;
 }
 
 // Request info about all pads.
@@ -469,13 +471,14 @@ function joinLines(cm) {
   cm.operation(function() {
     var offset = 0, ranges = [];
     for (var i = 0; i < joined.length; i++) {
-      var obj = joined[i];
-      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch), head;
+      var obj = joined[i], head;
+      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch);
       for (var line = obj.start; line <= obj.end; line++) {
         var actual = line - offset;
         if (line == obj.end) head = Pos(actual, cm.getLine(actual).length + 1);
         if (actual < cm.lastLine()) {
-          cm.replaceRange(" ", Pos(actual), Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
+          cm.replaceRange(" ", Pos(actual), 
+            Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
           ++offset;
         }
       }
@@ -656,10 +659,11 @@ function outf(text) {
 } 
 
 function builtinRead(x) {
-    if (Sk.builtinFiles === undefined 
-            || Sk.builtinFiles["files"][x] === undefined)
-            throw "File not found: '" + x + "'";
-    return Sk.builtinFiles["files"][x];
+  if (Sk.builtinFiles === undefined 
+    || Sk.builtinFiles["files"][x] === undefined) {
+          throw "File not found: '" + x + "'";
+  }
+  return Sk.builtinFiles["files"][x];
 }
 
 function getCurrentPad() {
@@ -667,28 +671,29 @@ function getCurrentPad() {
 }
 
 function runit() {
-   lines_modified = 0;
-   var prog = 
-        preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
-   var mypre = document.getElementById("output"); 
-   mypre.innerHTML = ''; 
-   Sk.pre = "output";
-   Sk.configure({output:outf, read:builtinRead}); 
-   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
-   var myPromise = Sk.misceval.asyncToPromise(function() {
-        return Sk.importMainWithBody("<stdin>", false, prog, true);
-   });
-   myPromise.then(function(mod) {
-   },
-       function(err) {
-       if(err.traceback[0]["lineno"] <= lines_modified) {
-         outf("Error in imported files.");
-       } else {
-         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
-         outf(err.toString());
-       }
-   });
-   $('#frameview').addClass("col-xs-4")
+  lines_modified = 0;
+  var prog = preprocess(
+  padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
+  var mypre = document.getElementById("output"); 
+  mypre.innerHTML = ''; 
+  Sk.pre = "output";
+  Sk.configure({output:outf, read:builtinRead}); 
+  (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
+  var myPromise = Sk.misceval.asyncToPromise(function() {
+      return Sk.importMainWithBody("<stdin>", false, prog, true);
+  });
+  myPromise.then(function(mod) {
+  },
+     function(err) {
+     if(err.traceback[0]["lineno"] <= lines_modified) {
+       outf("Error in imported files.");
+     } else {
+       err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - 
+        lines_modified; 
+       outf(err.toString());
+     }
+  });
+  $('#frameview').addClass("col-xs-4")
 }
 
 var stack = [];
