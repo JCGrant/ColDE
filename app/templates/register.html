@@ -2,7 +2,7 @@
 <html >
   <head>
     <meta charset="UTF-8">
-    <title>ColDE | {{ title }}</title>
+    <title>ColDE | Register</title>
     <link rel="stylesheet" href="/static/css/login.css">  
     <link rel="stylesheet" href="/static/css/lib/bootstrap.min.css">
 
@@ -43,6 +43,12 @@
             Please enter your Password:<br>
             {{ form.password(size=50) }}<br>
           </p>
+
+          <p>
+            Please repeat your Password:<br>
+            {{ form.password2(size=50) }}<br>
+          </p>
+
           <p>
             {% with messages = get_flashed_messages() %}
             {% if messages %}

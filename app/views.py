@@ -2,7 +2,7 @@ from flask import render_template, redirect, flash, url_for, g, request, jsonify
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm, socketio_server
 from .models import User, Project, Pad
-from .forms import LoginForm
+from .forms import LoginForm, RegisterForm
 import json
 import re
 
@@ -23,7 +23,7 @@ def before_request():
 def register():
     if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('home'))
-    form = LoginForm()
+    form = RegisterForm()
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
@@ -34,7 +34,7 @@ def register():
             db.session.commit()
             login_user(user, remember=True)
             return redirect(url_for('new_project'))
-    return render_template('login.html',
+    return render_template('register.html',
                            form=form, title='Register')
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -69,6 +69,7 @@ def new_project():
     title = request.args.get('title', 'New Project')
     project = Project(title)
     project.users.append(g.user)
+    project.owners.append(g.user)
     db.session.add(project)
     db.session.commit()
     return redirect(url_for('new_pad', id=project.id))
@@ -192,8 +193,11 @@ def add_users(id):
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
     usernames = request.args.getlist('username')
+    admin = request.args.get('makeadmins')
     for username in usernames:
         user = User.query.filter_by(username=username).first()
+        if admin is not None:
+            project.owners.append(user)
         project.users.append(user)
     db.session.commit()
     return redirect(url_for('project', id=id))
@@ -208,6 +212,8 @@ def del_users(id):
     for username in usernames:
         user = User.query.filter_by(username=username).first()
         project.users.remove(user)
+        if user in project.owners:
+            project.owners.remove(user)
     db.session.commit()
     return redirect(url_for('project', id=id))
 
@@ -220,6 +226,10 @@ def leave_project(id):
     username = request.args.get('username')
     user = User.query.filter_by(username=username).first()
     project.users.remove(user)
+    if user in project.owners:
+        project.owners.remove(user)
+    if len(project.owners) == 0:
+        db.session.delete(project)
     db.session.commit()
     return redirect(url_for('home'))
 

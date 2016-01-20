@@ -40,6 +40,7 @@ function closeConsole() {
     var child = document.getElementById("webview");
     frameview.removeChild(child);
     editorview.className = "col-xs-12";
+    editorview.style = '';
     webViewOpen = false;
     webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
     $('#frameview').html('');
@@ -47,11 +48,11 @@ function closeConsole() {
   }
 }
 
-function leaveProject(user) {
-  var request = "/project/" + project + "/leave_project" + "?username=" + user;
-  $.get(request);
-  window.location.href = "/";
-}
+// function leaveProject(user) {
+//   var request = "/project/" + project + "/leave_project" + "?username=" + user;
+//   $.get(request);
+//   window.location.href = "/";
+// }
 
 $newUserSelect = $('#newUserSelect');
 $('#newUserButton').click(function() {
