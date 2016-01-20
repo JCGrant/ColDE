@@ -21,7 +21,6 @@ var addComment = function(text) {
   // Fetch current editor.
   var editor = padEditor[displayedPad];
   // TODO(): prompt user for text.
-  // text = 'blah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxt';
   // Create the comment.
   var comment = {};
   // TODO(): get current username.
