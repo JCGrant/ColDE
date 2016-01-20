@@ -86,10 +86,21 @@ def new_pad(id):
     parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
     file_type = request.args.get('type', 'filenode')
+    project = Project.query.get(id)
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
         filename = tree_mappings[int(parent)] + filename
+    pads_filenames = [pad.filename for pad in project.pads]    
+    ct = 1
+    while filename in pads_filenames:
+        filename += "(" + str(ct) + ")"
+        if filename not in pads_filenames:
+            break
+        l = - (len(str(ct)) + 2)
+        filename = filename[:l]
+        ct+=1
+        
     # Check if valid project.
     if project is None:
         return redirect(url_for('home'))
@@ -128,11 +139,28 @@ def get_pad(id):
 
 @app.route('/project/<int:id>/users_not_in_project/')
 @login_required
-def get_users(id):
+def get_non_users(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
     users = [u for u in User.query.all() if u not in project.users]
+    user_dicts = {'users':
+        [
+            {
+                'id': u.id,
+                'username': u.username
+            } for u in users]
+    }
+    return jsonify(user_dicts)
+
+@app.route('/project/<int:id>/users/')
+@login_required
+def get_users(id):
+    project = Project.query.get(id)
+    current_user = request.args.get("user")
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    users = [u for u in User.query.all() if u in project.users and u.username != current_user]
     user_dicts = {'users':
         [
             {
@@ -153,7 +181,32 @@ def add_users(id):
         user = User.query.filter_by(username=username).first()
         project.users.append(user)
     db.session.commit()
-    return redirect(url_for('project', id=id)) 
+    return redirect(url_for('project', id=id))
+
+@app.route('/project/<int:id>/del_users/', methods=['GET'])
+@login_required
+def del_users(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    usernames = request.args.getlist('username')
+    for username in usernames:
+        user = User.query.filter_by(username=username).first()
+        project.users.remove(user)
+    db.session.commit()
+    return redirect(url_for('project', id=id))
+
+@app.route('/project/<int:id>/leave_project', methods=['GET'])
+@login_required
+def leave_project(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    project.users.remove(user)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 @app.route('/project/<int:id>/pad/rename', methods=['GET'])
 @login_required
@@ -161,10 +214,6 @@ def rename_pad(id):
     parent = request.args.get('parent', 1)
     filename = request.args.get('filename', 'new_file')
     new_filename = request.args.get('new', 'new_file')
-
-    is_file = False
-    if "." in new_filename:
-        is_file = True
 
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
@@ -179,17 +228,17 @@ def rename_pad(id):
 
     if project is None:
         return redirect(url_for('home'))
-    # Let the other clients know.
     pads_filenames = [pad.filename for pad in project.pads]
-    for pad_name in pads_filenames:
-        result = re.sub(filename, new_filename, pad_name)
-        if result != pad_name:
-            pad = project.pads.filter_by(filename=pad_name).first()
-            pad.filename = new_filename
-            # Let the other clients know.
-            msg = {'projectId': id}
-            msg['padId'], msg['filename'] = pad.id, pad.filename
-            socketio_server.onFileManipulation('rename', msg)
+    # Let the other clients know.
+    for pad in project.pads:
+        result = re.sub(r"" + filename + '\Z', new_filename, pad.filename)
+        result = re.sub(r"" + filename + '/', new_filename + '/', result)
+        if result not in pads_filenames:
+            pad.filename = result
+        # Let the other clients know.
+        msg = {'projectId': id}
+        msg['padId'], msg['filename'] = pad.id, pad.filename
+        socketio_server.onFileManipulation('rename', msg)
     db.session.commit()
     return redirect(url_for('project', id=project.id))
 
@@ -210,7 +259,7 @@ def delete_pad(id):
 
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
-        result = re.match(filename, pad_name)
+        result = re.match(r"" + filename + '(/|\Z)', pad_name)
         if result:
             pad = project.pads.filter_by(filename=pad_name).first()
             # Let the other clients know.
@@ -238,11 +287,12 @@ def construct_JSON(filenames, id):
             if x:
                 step = {"id": id_count, "text": x}
                 current_path += x
-                if x != paths[len(paths) - 1]:
+                if len(current_path) != len(filename):
                     current_path += "/"
                 else:
-                    print (filename)
                     pad = project.pads.filter_by(filename=current_path).first()
+                    if pad is None:
+                        print(current_path + "--------")
                     if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
                         step['type'] = 'file'

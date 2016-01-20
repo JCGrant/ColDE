@@ -1,6 +1,8 @@
 webViewOpen = false;
 var webViewToggleButton = $("#toggleWebView");
-
+var url = window.location.href;
+var split = url.split("/");
+var project = split[4];
 
 function toggleWebView() {
   if (webViewOpen) {
@@ -45,6 +47,12 @@ function closeConsole() {
   }
 }
 
+function leaveProject(user) {
+  var request = "/project/" + project + "/leave_project" + "?username=" + user;
+  $.get(request);
+  window.location.href = "/";
+}
+
 $newUserSelect = $('#newUserSelect');
 $('#newUserButton').click(function() {
   $.get('/project/' + projectId + '/users_not_in_project/', function(data) {
@@ -56,4 +64,16 @@ $('#newUserButton').click(function() {
   });
 });
 
+$delUserSelect = $('#delUserSelect');
+$('#delUserButton').click(function() {
+  $.get('/project/' + projectId + '/users' + "?user=" + current_user, function(data) {
+    $options = ''
+    data.users.forEach(function(user) {
+      $options += '<option>' + user.username + '</option>';
+    });
+    $delUserSelect.html($options);
+  });
+});
+
 $newUserSelect.select2();
+$delUserSelect.select2();
