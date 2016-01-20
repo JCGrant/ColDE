@@ -73,6 +73,8 @@ var addComment = function(text) {
   pad.csY = pad.csY.applyChangeset(newCs);
   // Display the comment in client, although not ACKed.
   displayComment(comment);
+  // Clear undo history after other client update.
+  editor.clearHistory();
 }
 
 $('#newCommentForm').submit(function(event) {
