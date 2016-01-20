@@ -83,27 +83,37 @@
         </div>
           <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-              <li><a href="#" data-toggle="modal" data-target="#newProjectModal">New Project <span class="glyphicon glyphicon-folder-open"></span></a></li>
-              <li><a href="#" data-toggle="modal" data-target="#openProjectModal">Open Project <span class="glyphicon glyphicon-folder-open"></span></a></li>
+            <li class="dropdown">
+              <a href="" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projects <span class="glyphicon glyphicon-folder-open"></span></a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a href="#" data-toggle="modal" data-target="#newProjectModal">New</a></li>
+                <li><a href="#" data-toggle="modal" data-target="#openProjectModal">Open</a></li>
+              </ul>
+            </li>
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
-            {% if current_user in project.owners %}
-              <li class="dropdown">
-                  <a id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Admin Menu
-                    <span class="caret"></span>
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="dLabel">
-                    <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-plus-sign"></span></a></li>
-                    <li><a id='delUserButton' href="#" data-toggle="modal" data-target="#delUserModal">Remove Users <span class="glyphicon glyphicon-minus-sign"></span></a></li>
-                    <li><a id='leaveButton' href="#" data-toggle="modal" data-target="#leaveProjectModal">Leave Project <span class="glyphicon glyphicon-off"></span></a></li>
-                  </ul>
-            {% endif %}
             <li><a href="#" data-toggle="modal" data-target="#addCommentModal">Add Comment <span class="glyphicon glyphicon-text-background"></span></a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/"><span class="glyphicon glyphicon-user"></span>  {{current_user.username}}</a></li>
-            <li><a href="/logout">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+            {% if current_user in project.owners %}
+            <li class="dropdown">
+              <a href="" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Admin Menu
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-plus-sign"></span></a></li>
+                <li><a id='delUserButton' href="#" data-toggle="modal" data-target="#delUserModal">Remove Users <span class="glyphicon glyphicon-minus-sign"></span></a></li>
+              </ul>
+            </li>
+            {% endif %}
+            <li class="dropdown">
+            <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href=""><span class="glyphicon glyphicon-user"></span> {{current_user.username}}</a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a id='leaveButton' href="#" data-toggle="modal" data-target="#leaveProjectModal">Leave Project <span class="glyphicon glyphicon-off"></span></a></li>
+                <li><a href="/logout">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+              </ul>
+            </li>
           </ul>
         </div>
       </div>
