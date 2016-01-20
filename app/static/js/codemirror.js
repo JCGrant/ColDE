@@ -688,7 +688,6 @@ function runit() {
          outf(err.toString());
        }
    });
-   showConsole();
    $('#frameview').addClass("col-xs-4")
 }
 
