@@ -1,63 +1,3 @@
-$("#runButton").click(runChooseButton);
-function runChooseButton() {
-  var split = getCurrentPad().split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  switch(ext) {
-    case "js":
-      runJScode()
-      break;
-    case "py":
-      runit()
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-  }
-}
-function createEditor(filename, textArea) {
-  var language = ""
-  var split = filename.split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  var tabSize = 2
-  switch(ext) {
-    case "js":
-      language = "javascript"
-      break;
-    case "py":
-      language = "python"
-      tabSize = 4
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-    case "css":
-      language = "css"
-      break;
-  }
-
-  var editor = CodeMirror.fromTextArea(textArea, {
-    lineNumbers: true,
-    mode: {name: language, globalVars: true},
-    keyMap: "sublime",
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    showCursorWhenSelecting: true,
-    theme: 'monokai',
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    tabSize: tabSize,
-  });
-
-  return editor;
-}
 
 /**
  * Refresh HTML visualised if currently displayed pad is HTML, and it has been
@@ -262,6 +202,68 @@ var internalNewPad = function(pad) {
   });
   // Clear history after initial version is set.
   editor.clearHistory();
+}
+
+// Add functionality to the run button.
+$("#runButton").click(runChooseButton);
+function runChooseButton() {
+  var split = getCurrentPad().split("."), ext = "";
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide what language is run.
+  switch(ext) {
+    case "js":
+      runJScode()
+      break;
+    case "py":
+      runit()
+      break;
+    case "html":
+      language = "htmlmixed"
+      break;
+  }
+}
+function createEditor(filename, textArea) {
+  var language = "", ext = "";
+  var split = filename.split(".");
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide language for syntax highlighting and the tab size.
+  var tabSize = 2;
+  switch(ext) {
+    case "js":
+      language = "javascript";
+      break;
+    case "py":
+      language = "python";
+      tabSize = 4;
+      break;
+    case "html":
+      language = "htmlmixed";
+      break;
+    case "css":
+      language = "css";
+      break;
+  }
+  // Create the editor.
+  var editor = CodeMirror.fromTextArea(textArea, {
+    lineNumbers: true,
+    mode: {name: language, globalVars: true},
+    keyMap: "sublime",
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    showCursorWhenSelecting: true,
+    theme: 'monokai',
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    tabSize: tabSize,
+  });
+
+  return editor;
 }
 
 // Request info about all pads.
@@ -469,13 +471,14 @@ function joinLines(cm) {
   cm.operation(function() {
     var offset = 0, ranges = [];
     for (var i = 0; i < joined.length; i++) {
-      var obj = joined[i];
-      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch), head;
+      var obj = joined[i], head;
+      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch);
       for (var line = obj.start; line <= obj.end; line++) {
         var actual = line - offset;
         if (line == obj.end) head = Pos(actual, cm.getLine(actual).length + 1);
         if (actual < cm.lastLine()) {
-          cm.replaceRange(" ", Pos(actual), Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
+          cm.replaceRange(" ", Pos(actual), 
+            Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
           ++offset;
         }
       }
@@ -656,9 +659,11 @@ function outf(text) {
 } 
 
 function builtinRead(x) {
-    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-            throw "File not found: '" + x + "'";
-    return Sk.builtinFiles["files"][x];
+  if (Sk.builtinFiles === undefined 
+    || Sk.builtinFiles["files"][x] === undefined) {
+          throw "File not found: '" + x + "'";
+  }
+  return Sk.builtinFiles["files"][x];
 }
 
 function getCurrentPad() {
@@ -666,37 +671,40 @@ function getCurrentPad() {
 }
 
 function runit() {
-   lines_modified = 0;
-   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
-   var mypre = document.getElementById("output"); 
-   mypre.innerHTML = ''; 
-   Sk.pre = "output";
-   Sk.configure({output:outf, read:builtinRead}); 
-   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
-   var myPromise = Sk.misceval.asyncToPromise(function() {
-        return Sk.importMainWithBody("<stdin>", false, prog, true);
-   });
-   myPromise.then(function(mod) {
-   },
-       function(err) {
-       if(err.traceback[0]["lineno"] <= lines_modified) {
-         outf("Error in imported files.");
-       } else {
-         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
-         outf(err.toString());
-       }
-   });
-   showConsole();
-   $('#frameview').addClass("col-xs-4")
+  lines_modified = 0;
+  var prog = preprocess(
+  padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
+  var mypre = document.getElementById("output"); 
+  mypre.innerHTML = ''; 
+  Sk.pre = "output";
+  Sk.configure({output:outf, read:builtinRead}); 
+  (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
+  var myPromise = Sk.misceval.asyncToPromise(function() {
+      return Sk.importMainWithBody("<stdin>", false, prog, true);
+  });
+  myPromise.then(function(mod) {
+  },
+     function(err) {
+     if(err.traceback[0]["lineno"] <= lines_modified) {
+       outf("Error in imported files.");
+     } else {
+       err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - 
+        lines_modified; 
+       outf(err.toString());
+     }
+  });
+  $('#frameview').addClass("col-xs-4")
 }
 
 var stack = [];
 var initialFile;
+//Method to perform imports in all programming languages
 function preprocess(text, type, filelist, initial) {
   if(type === 1) {
     var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
     var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*(\"|\')stylesheet\\1[^>]*>', 'gi');
     var res;
+    // preprocess script imports in html
     while((res = regex.exec(text)) !== null) {
       var filename = /src[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0]);
       if (filename == null) {
@@ -708,9 +716,11 @@ function preprocess(text, type, filelist, initial) {
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                                       + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
+    //preprocess style imports in html
     while((res = regex2.exec(text)) !== null) {
       var filename = /href[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0])
       if(filename == null) {
@@ -718,27 +728,32 @@ function preprocess(text, type, filelist, initial) {
       }
       filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
+      var toReplace = 
+                  res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
       toReplace = toReplace.replace(/href[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       toReplace = toReplace.replace('link', 'style');
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                      + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
   } else {
+    //preprocess python imports
     if(initial === 1) {
       initialFile = filelist.pop();
     }
     var regex = new RegExp ('import[^;\\n\\r]*', 'g');
-    //TODO from X import Y;
+
     var res;
     while((res = regex.exec(text)) !== null) {
+      //get the class name
       var classname = res[0].split(/\s+/);
       classname = classname.filter(Boolean).pop();
       classname = classname.replace(/\r?\n|\r/, '');
       classname = classname.replace(/\s/g, '');
+      //get the file name
       var filename = res[0].split(/\s+/);
       filename = filename.filter(Boolean)[1];
       filename = filename.replace(/[\s\t]+as.*/, '');
@@ -752,33 +767,38 @@ function preprocess(text, type, filelist, initial) {
       }
       if(filename === initialFile) {
         var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd);
-        console.log(filename);
         continue;
       }
       stack.push(classname);
       if(filelist.indexOf(classname) > -1) {
-        var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
+        var text = text.slice(0, indexToAdd) 
+                        + text.slice(indexAfterAdd).replace(/\s*/, '');
       } else {
         filelist.push(classname);
         if (findPad(filename) == null) {
-          console.log(filename);
           stack.pop();
           continue;
         }
+        //get imported class recurseviley
         var to_add = preprocess(findPad(filename), 2, filelist, 0)
-        lines_modified = count_lines(to_add) + lines_modified + 3;
-        text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
-        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
+        lines_modified = count_lines(to_add) + lines_modified + 1;
+        text = text.replace(new RegExp(classname + "\\.", "g"), 
+                  stack.join('.') + '.');
+        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' 
+                + identPython(to_add) + "\n" 
+                + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
       classregex = new RegExp(classname, 'g');
+      //rename methods for deep imports
       text = text.replace(classregex, classname.replace(/\./g, '_'));
-      console.log(text);
+      lines_modified -= 1
     }
   }
   return text; 
 }
 
+//ident python module to be imported accortingly
 function identPython(str) {
   str = str.split(/\n\r|\r|\n/)
   for( var i = 0; i < str.length; i++ ) {
@@ -787,10 +807,12 @@ function identPython(str) {
   return str.join('\n');
 }
 
+//count the lines for error reporting
 function count_lines(str) {
   return str.split(/\n\r|\r|\n/).length
 }
 
+//find the pad to be imported
 function findPad(text) {
   for (var i = 0; i < pads.length; i++) {
     if(pads[i].filename === text) {

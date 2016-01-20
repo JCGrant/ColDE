@@ -1,3 +1,4 @@
+// Create the JS tree.
 var url = window.location.href;
 var split = url.split("/");
 var project = split[4];
@@ -75,6 +76,7 @@ tree.on("select_node.jstree", function(e, data) {
   });
 });
 
+/// Refreshes the js tree by sending a request to the server.
 var refreshFileTree = function() {
   tree.jstree("refresh");
 }
@@ -88,10 +90,12 @@ function customMenu(node) {
             action: function (data)   {
               var inst = $.jstree.reference(data.reference),
               obj = inst.get_node(data.reference);
-              inst.create_node(obj, {'nodetype' : 'filenode'}, "last", function (new_node) {
-              //alert(JSON.stringify(new_node));
-              new_node.icon = "glyphicon glyphicon-file"
-              setTimeout(function () { inst.edit(new_node); },0);
+              inst.create_node(obj, 
+                {'nodetype' : 'filenode'}, "last", 
+                function (new_node) {
+                  //alert(JSON.stringify(new_node));
+                  new_node.icon = "glyphicon glyphicon-file"
+                  setTimeout(function () { inst.edit(new_node); },0);
             });
           }
         },
@@ -101,9 +105,10 @@ function customMenu(node) {
             action: function (data) {   
               var inst = $.jstree.reference(data.reference),
               obj = inst.get_node(data.reference);
-              inst.create_node(obj, {'nodetype' : 'foldernode'}, "last", function (new_node) {
-              //alert(JSON.stringify(new_node));
-              setTimeout(function () { inst.edit(new_node); },0);
+              inst.create_node(obj, {'nodetype' : 'foldernode'}, "last", 
+                function (new_node) {
+                  //alert(JSON.stringify(new_node));
+                  setTimeout(function () { inst.edit(new_node); },0);
             });
           }
         },
