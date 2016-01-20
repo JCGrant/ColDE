@@ -47,8 +47,9 @@ tree.on("rename_node.jstree", function(e, data) {
   } else {
     getContent = "/project/" + project + "/rename" + "?new_title=" + name;
   }
-  $.get(getContent);
-  refreshFileTree();
+  $.get(getContent, function() {
+    refreshFileTree();
+  });
 });
 
 tree.on("delete_node.jstree", function(e, data) {
@@ -57,8 +58,9 @@ tree.on("delete_node.jstree", function(e, data) {
   // Create GET content.
   var getContent = "/project/" + project + "/pad/delete" + "?parent=" + 
     parent + "&filename=" + name;
-  $.get(getContent);
-  refreshFileTree();
+  $.get(getContent, function() {
+    refreshFileTree();
+  });
 });
 
 tree.on("select_node.jstree", function(e, data) {
