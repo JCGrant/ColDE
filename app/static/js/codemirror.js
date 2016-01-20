@@ -656,7 +656,8 @@ function outf(text) {
 } 
 
 function builtinRead(x) {
-    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+    if (Sk.builtinFiles === undefined || 
+                        Sk.builtinFiles["files"][x] === undefined)
             throw "File not found: '" + x + "'";
     return Sk.builtinFiles["files"][x];
 }
@@ -667,7 +668,8 @@ function getCurrentPad() {
 
 function runit() {
    lines_modified = 0;
-   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
+   var prog = preprocess(padEditor[displayedPad].getValue(), 2, 
+                                                  [getCurrentPad()], 1); 
    var mypre = document.getElementById("output"); 
    mypre.innerHTML = ''; 
    Sk.pre = "output";
@@ -682,7 +684,8 @@ function runit() {
        if(err.traceback[0]["lineno"] <= lines_modified) {
          outf("Error in imported files.");
        } else {
-         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
+         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] 
+                                                - lines_modified; 
          outf(err.toString());
        }
    });
@@ -695,7 +698,8 @@ var initialFile;
 function preprocess(text, type, filelist, initial) {
   if(type === 1) {
     var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
-    var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*(\"|\')stylesheet\\1[^>]*>', 'gi');
+    var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=
+                              [\\s\\t]*(\"|\')stylesheet\\1[^>]*>', 'gi');
     var res;
     while((res = regex.exec(text)) !== null) {
       var filename = /src[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0]);
@@ -708,7 +712,8 @@ function preprocess(text, type, filelist, initial) {
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                                              + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
     while((res = regex2.exec(text)) !== null) {
@@ -718,13 +723,15 @@ function preprocess(text, type, filelist, initial) {
       }
       filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
+      var toReplace = res[0].replace(/rel[\s\t]*=
+                                         [\s\t]*["']stilesheet["']/gi, '');
       toReplace = toReplace.replace(/href[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       toReplace = toReplace.replace('link', 'style');
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                              + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
   } else {
@@ -757,7 +764,8 @@ function preprocess(text, type, filelist, initial) {
       }
       stack.push(classname);
       if(filelist.indexOf(classname) > -1) {
-        var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
+        var text = text.slice(0, indexToAdd) + 
+                                  text.slice(indexAfterAdd).replace(/\s*/, '');
       } else {
         filelist.push(classname);
         if (findPad(filename) == null) {
@@ -767,8 +775,11 @@ function preprocess(text, type, filelist, initial) {
         }
         var to_add = preprocess(findPad(filename), 2, filelist, 0)
         lines_modified = count_lines(to_add) + lines_modified + 3;
-        text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
-        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
+        text = text.replace(new RegExp(classname + "\\.", "g"), 
+                                                      stack.join('.') + '.');
+        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' 
+                + identPython(to_add) + "\n" 
+                + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
       classregex = new RegExp(classname, 'g');
