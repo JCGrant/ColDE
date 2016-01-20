@@ -35,7 +35,7 @@ var addComment = function(text) {
   // Create the corresponding changeset.
   var newCs;
   editor.operation(function() {
-    var cursorMarker = editor.setBookmark(cursor);
+    var cursorMarker = editor.setBookmark(cursor, {'insertLeft': true});
     myMarkers.push([cursorMarker, false]);
     // Expand comments.
     expandEditorComments(displayedPad);
@@ -68,6 +68,8 @@ var addComment = function(text) {
     // Collapse comments.
     collapseEditorComments(displayedPad);
   });
+  // Clear undo history after other client update.
+  editor.clearHistory();
   // Apply the changeset.
   var pad = padById[displayedPad];
   pad.csY = pad.csY.applyChangeset(newCs);

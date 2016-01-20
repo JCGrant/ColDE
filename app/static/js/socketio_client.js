@@ -114,9 +114,11 @@ var onBeforeChange = function(changeset) {
   var newCs;
   // Wrap everything in an atomic operation.
   displayedEditor.operation(function() {
+    // Save history to be restored later.
+    var h = displayedEditor.getHistory();
     // Add bookmarks for easy position tracking.
-    var fromMarker = displayedEditor.setBookmark(changeset['from']);
-    var toMarker = displayedEditor.setBookmark(changeset['to']);
+    var fromMarker = displayedEditor.setBookmark(changeset['from'], {'insertLeft': true});
+    var toMarker = displayedEditor.setBookmark(changeset['to'], {'insertLeft': true});
     myMarkers.push([fromMarker, false], [toMarker, false]);
     // Expand.
     expandEditorComments(displayedPad);
@@ -130,6 +132,8 @@ var onBeforeChange = function(changeset) {
     removeMarker(toMarker); toMarker.clear();
     // Collapse.
     collapseEditorComments(displayedPad);
+    // Restore undo history.
+    displayedEditor.setHistory(h);
   });
   // Merge changeset with csY.
   var pad = padById[displayedPad];
