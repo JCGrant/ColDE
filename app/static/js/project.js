@@ -40,7 +40,7 @@ function closeConsole() {
     var child = document.getElementById("webview");
     frameview.removeChild(child);
     editorview.className = "col-xs-12";
-    editorview.style = '';
+    editorview.removeAttribute("style");
     webViewOpen = false;
     webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
     $('#frameview').html('');
