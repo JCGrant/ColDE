@@ -139,6 +139,17 @@ def get_pad(id):
         result["id"] = -1
     return json.dumps(result)
 
+@app.route('/project/<int:id>/rename', methods=['GET'])
+@login_required
+def rename_project(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    new_title = request.args.get('new_title', 'New project')
+    project.title = new_title
+    db.session.commit()
+    return redirect(url_for('project', id=project.id))
+
 @app.route('/project/<int:id>/users_not_in_project/')
 @login_required
 def get_non_users(id):
