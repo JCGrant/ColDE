@@ -28,10 +28,13 @@ def register():
         user = User.query.filter_by(username=username).first()
         if user is None:
             user = User(username=username, password=password)
+            project = Project('New Project')
+            project.users.append(user)
             db.session.add(user)
+            db.session.add(project)
             db.session.commit()
             login_user(user, remember=True)
-            return redirect(url_for('home'))
+            return redirect(url_for('project', id=project.id))
     return render_template('login.html',
                            form=form, title='Register')
 
@@ -59,7 +62,7 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    return render_template('home.html', user=g.user)
+    return redirect(url_for('project', id=g.user.most_recent_project_id))
 
 @app.route('/project/new/', methods=['GET'])
 @login_required
@@ -69,7 +72,7 @@ def new_project():
     project.users.append(g.user)
     db.session.add(project)
     db.session.commit()
-    return redirect(url_for('project', id=project.id))
+    return redirect(url_for('new_pad', id=project.id))
 
 @app.route('/project/<int:id>/')
 @login_required
@@ -77,6 +80,8 @@ def project(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
+    g.user.most_recent_project_id = id
+    db.session.commit()
     return render_template('project.html', 
                            project=project)
 

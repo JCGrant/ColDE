@@ -16,6 +16,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50))
     password_hash = db.Column(db.String(100))
+    most_recent_project_id = db.Column(db.Integer)
 
     def __init__(self, username, password):
         self.username = username

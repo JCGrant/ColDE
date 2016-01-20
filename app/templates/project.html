@@ -82,6 +82,8 @@
         </div>
           <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+              <li><a href="#" data-toggle="modal" data-target="#newProjectModal">New Project <span class="glyphicon glyphicon-folder-open"></span></a></li>
+              <li><a href="#" data-toggle="modal" data-target="#openProjectModal">Open Project <span class="glyphicon glyphicon-folder-open"></span></a></li>
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
             <li class="dropdown">
@@ -103,6 +105,53 @@
         </div>
       </div>
     </nav>
+
+    <div class="modal fade" id="newProjectModal" tabindex="-1" role="dialog" aria-labelledby="newProjectModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newProjectModalLabel">New Project</h4>
+          </div>
+          <form action='/project/new'>
+            <div class="modal-body">
+                  <div class="form-group">
+                      <label for="name">Please choose a name for the project:</label>
+                      <input id="projectName" class="form-control" type="text" placeholder="Project Name" name='title'>
+                  </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="openProjectModal" tabindex="-1" role="dialog" aria-labelledby="newProjectModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newProjectModalLabel">Your Projects</h4>
+          </div>
+          <div class="modal-body">
+                <div class="form-group">
+                  <label for="name">Which project would you like to open?</label>
+                  <ul>
+                  {% for project in current_user.projects.all() %}
+                    <li><h3><a href='/project/{{ project.id }}'>{{ project.title }}</a></h3></li>
+                  {% endfor %}
+                  </ul>
+                </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
       <div class="modal-dialog" role="document">
