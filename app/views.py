@@ -9,6 +9,8 @@ import re
 tree_mappings = {}
 tree_mappings[1] = "/"
 
+DEFAULT_FILENAME = 'New File'
+
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -31,7 +33,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             login_user(user, remember=True)
-            return redirect(url_for('home'))
+            return redirect(url_for('new_project'))
     return render_template('register.html',
                            form=form, title='Register')
 
@@ -59,7 +61,7 @@ def logout():
 @app.route('/')
 @login_required
 def home():
-    return render_template('home.html', user=g.user)
+    return redirect(url_for('project', id=g.user.most_recent_project_id))
 
 @app.route('/project/new/', methods=['GET'])
 @login_required
@@ -70,7 +72,7 @@ def new_project():
     project.owners.append(g.user)
     db.session.add(project)
     db.session.commit()
-    return redirect(url_for('project', id=project.id))
+    return redirect(url_for('new_pad', id=project.id))
 
 @app.route('/project/<int:id>/')
 @login_required
@@ -78,6 +80,8 @@ def project(id):
     project = Project.query.get(id)
     if project is None or g.user not in project.users:
         return redirect(url_for('home'))
+    g.user.most_recent_project_id = id
+    db.session.commit()
     return render_template('project.html', 
                            project=project)
 
@@ -85,7 +89,7 @@ def project(id):
 @login_required
 def new_pad(id):
     parent = request.args.get('parent', 1)  
-    filename = request.args.get('filename', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
     file_type = request.args.get('type', 'filenode')
     project = Project.query.get(id)
     if int(parent) != 1:
@@ -137,6 +141,17 @@ def get_pad(id):
     if not pad.is_file:
         result["id"] = -1
     return json.dumps(result)
+
+@app.route('/project/<int:id>/rename', methods=['GET'])
+@login_required
+def rename_project(id):
+    project = Project.query.get(id)
+    if project is None or g.user not in project.users:
+        return redirect(url_for('home'))
+    new_title = request.args.get('new_title', 'New project')
+    project.title = new_title
+    db.session.commit()
+    return redirect(url_for('project', id=project.id))
 
 @app.route('/project/<int:id>/users_not_in_project/')
 @login_required
@@ -222,8 +237,8 @@ def leave_project(id):
 @login_required
 def rename_pad(id):
     parent = request.args.get('parent', 1)
-    filename = request.args.get('filename', 'new_file')
-    new_filename = request.args.get('new', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
+    new_filename = request.args.get('new', DEFAULT_FILENAME)
 
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
@@ -256,7 +271,7 @@ def rename_pad(id):
 @login_required
 def delete_pad(id):
     parent = request.args.get('parent', 1)
-    filename = request.args.get('filename', 'new_file')
+    filename = request.args.get('filename', DEFAULT_FILENAME)
 
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename

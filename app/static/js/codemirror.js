@@ -228,6 +228,11 @@ var internalNewPad = function(pad) {
         && blockedOrigins.indexOf(changeset['origin']) >= 0) {
         return;
     }
+    // Skip if hits side, useful for comments.
+    if (changeset['from']['hitSide']) {
+      return;
+    }
+    console.log(JSON.stringify(changeset));
     onBeforeChange(changeset);
   });
 
@@ -254,9 +259,9 @@ var internalNewPad = function(pad) {
     editor.setValue(pad.text);
     // Detect comments and display them properly.
     detectComments(editor);
-    // Clear history after initial version is set.
-    editor.clearHistory();
   });
+  // Clear history after initial version is set.
+  editor.clearHistory();
 }
 
 // Request info about all pads.
@@ -529,6 +534,8 @@ processExternalChangeset = function(padId, changeset) {
     // Expand possible newly added comments.
     ids = detectComments(editor);
   });
+  // Clear undo history after other client update.
+  editor.clearHistory();
   // Enable bootstrap popover.
   $(document).ready(function() {
     $('[data-toggle="popover"]').popover({container:'body', animation:false});

@@ -115,8 +115,7 @@ def updateDBPad(changeset, crtRev):
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
-    pad = Pad.query.filter_by(project_id=changeset['projectId']).\
-        filter_by(id=changeset['padId']).first()
+    print(pad.text)
 
 # Handles file manipulations from a client, broadcasts to the others.
 def onFileManipulation(type, content):

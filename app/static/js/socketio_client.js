@@ -114,12 +114,18 @@ var onBeforeChange = function(changeset) {
   var newCs;
   // Wrap everything in an atomic operation.
   displayedEditor.operation(function() {
+    // Save history to be restored later.
+    var h = displayedEditor.getHistory();
     // Add bookmarks for easy position tracking.
-    var fromMarker = displayedEditor.setBookmark(changeset['from']);
+    var fromMarker = displayedEditor.setBookmark(changeset['from'], {'insertLeft': true});
     var toMarker = displayedEditor.setBookmark(changeset['to']);
+    console.log(JSON.stringify(changeset['from']));
+    console.log(JSON.stringify(changeset['to']));
     myMarkers.push([fromMarker, false], [toMarker, false]);
     // Expand.
     expandEditorComments(displayedPad);
+    console.log(JSON.stringify(fromMarker.find()));
+    console.log(JSON.stringify(toMarker.find()));
     // Update the CM changeset.
     changeset['removed'] 
       = [getTextRange(displayedPad, fromMarker.find(), toMarker.find())];
@@ -130,6 +136,8 @@ var onBeforeChange = function(changeset) {
     removeMarker(toMarker); toMarker.clear();
     // Collapse.
     collapseEditorComments(displayedPad);
+    // Restore undo history.
+    displayedEditor.setHistory(h);
   });
   // Merge changeset with csY.
   var pad = padById[displayedPad];

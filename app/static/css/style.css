@@ -58,3 +58,7 @@ body {
 .row div, .row div iframe {
   padding: 0;
 }
+
+#right_side {
+  border-left:1px solid #ccc;
+}
