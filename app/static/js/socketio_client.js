@@ -49,20 +49,6 @@ var padById = {};
 /// Id of pad that is currently displayed.
 var displayedPad = -1;
 
-// Init pad list.
-for (var i = 0; i < pads.length; ++i) {
-  // Initialise csA, csX and csY to identity.
-  // Changeset containing only revisions received from the server
-  // or own ACKed revisions.
-  pads[i].csA = new Changeset(pads[i].text.length);
-  // Submitted composition of changesets to server, still waiting for ACK.
-  pads[i].csX = new Changeset(pads[i].text.length);
-  // Unsubmitted local composition of changes.
-  pads[i].csY = new Changeset(pads[i].text.length);
-  // Add the current pad in the mapping by id.
-  padById[pads[i].id] = pads[i];
-}
-
 socket.on('server_client_changeset', function(cs) {
   // Skip the changeset if it was issued by us.
   if (cs['clientId'] === userId) {
@@ -96,9 +82,7 @@ socket.on('server_client_changeset', function(cs) {
   processExternalChangeset(cs['padId'], D);
 });
 
-// TODO(mihai): check how to use a socket.io callback for this.
 socket.on('server_client_ack', function(padId) {
-  // TODO(mihai): update editor content.
   // Update changesets.
   var pad = padById[padId];
   pad.csA = pad.csA.applyChangeset(pad.csX);
@@ -128,12 +112,19 @@ var onBeforeChange = function(changeset) {
   var newCs;
   // Wrap everything in an atomic operation.
   displayedEditor.operation(function() {
+    // Save history to be restored later.
+    var h = displayedEditor.getHistory();
     // Add bookmarks for easy position tracking.
-    var fromMarker = displayedEditor.setBookmark(changeset['from']);
+    var fromMarker = displayedEditor.setBookmark(
+      changeset['from'], {'insertLeft': true});
     var toMarker = displayedEditor.setBookmark(changeset['to']);
+    console.log(JSON.stringify(changeset['from']));
+    console.log(JSON.stringify(changeset['to']));
     myMarkers.push([fromMarker, false], [toMarker, false]);
     // Expand.
     expandEditorComments(displayedPad);
+    console.log(JSON.stringify(fromMarker.find()));
+    console.log(JSON.stringify(toMarker.find()));
     // Update the CM changeset.
     changeset['removed'] 
       = [getTextRange(displayedPad, fromMarker.find(), toMarker.find())];
@@ -144,6 +135,8 @@ var onBeforeChange = function(changeset) {
     removeMarker(toMarker); toMarker.clear();
     // Collapse.
     collapseEditorComments(displayedPad);
+    // Restore undo history.
+    displayedEditor.setHistory(h);
   });
   // Merge changeset with csY.
   var pad = padById[displayedPad];
@@ -274,4 +267,12 @@ $('#chat').submit(function() {
   socket.emit('client_server_chat_message', message);
   $chat_input.val('');
   return false;
+});
+
+/**
+ * File manipulation event received from server.
+ */
+socket.on('server_client_file_manipulation', function(msg) {
+  // Process manipulation.
+  processExternalFileManipulation(msg);
 });

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>ColDE</title>
+    <title>ColDE | {{ project.title }}</title>
     <link rel="stylesheet" href="/static/css/lib/codemirror.css">
     <link rel="stylesheet" href="/static/css/lib/select2.min.css">
     <link rel="stylesheet" href="/static/css/lib/bootstrap.min.css">
@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/CodeMirror/theme/monokai.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/lib/themes/default/style.min.css"/>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
 
     <script src="/static/js/lib/codemirror.js"></script>
     <script src="/static/CodeMirror/addon/hint/javascript-hint.js"></script>
@@ -31,6 +32,41 @@
     <script src="/static/CodeMirror/mode/htmlmixed/htmlmixed.js"></script>
     <script src="/static/CodeMirror/keymap/sublime.js"></script> 
 
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery_add_ons.js"></script>
+    <script>
+      var current_user = "{{ current_user.username }}";
+
+
+      function openResize() {
+          $("#editorview").resizable({
+               handles: 'e',
+               alsoResizeReverse: $("#webview"),
+               containment: "#parent",
+              start: function(){
+              ifr = $('#webview');
+              var d = $('<div></div>');
+
+              $('#frameview').append(d[0]);
+              d[0].id = 'temp_div';
+              d.css({position:'absolute'});
+              d.css({top: ifr.position().top, left:0});
+              d.height(ifr.height());
+              d.width('100%');
+            },
+            stop: function(){
+              $('#temp_div').remove();
+            }
+          });
+          $("#editorview").resizable('enable');
+      }
+      function closeResize() {
+          $("#editorview").resizable('disable');
+      }
+      $('#editorview').onresize
+    </script>
+
   </head>
   <body>  
 
@@ -47,17 +83,88 @@
         </div>
           <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projects <span class="glyphicon glyphicon-folder-open"></span></a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a href="#" data-toggle="modal" data-target="#newProjectModal">New</a></li>
+                <li><a href="#" data-toggle="modal" data-target="#openProjectModal">Open</a></li>
+              </ul>
+            </li>
             <li><a id="runButton" href="#">Run Code <span class="glyphicon glyphicon-play"></span></a></li>
             <li><a id="toggleWebView" href="#">Open Graphical View <span class="glyphicon glyphicon-modal-window"></span></a></li>
-            <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-user"></span></a></li>
             <li><a href="#" data-toggle="modal" data-target="#addCommentModal">Add Comment <span class="glyphicon glyphicon-text-background"></span></a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/logout">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+            {% if current_user in project.owners %}
+            <li class="dropdown">
+              <a href="" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Admin Menu
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a id='newUserButton' href="#" data-toggle="modal" data-target="#newUserModal">New Users <span class="glyphicon glyphicon-plus-sign"></span></a></li>
+                <li><a id='delUserButton' href="#" data-toggle="modal" data-target="#delUserModal">Remove Users <span class="glyphicon glyphicon-minus-sign"></span></a></li>
+              </ul>
+            </li>
+            {% endif %}
+            <li class="dropdown">
+            <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href=""><span class="glyphicon glyphicon-user"></span> {{current_user.username}}</a>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a id='leaveButton' href="#" data-toggle="modal" data-target="#leaveProjectModal">Leave Project <span class="glyphicon glyphicon-off"></span></a></li>
+                <li><a href="/logout">Logout <span class="glyphicon glyphicon-log-out"></span></a></li>
+              </ul>
+            </li>
           </ul>
         </div>
       </div>
     </nav>
+
+    <div class="modal fade" id="newProjectModal" tabindex="-1" role="dialog" aria-labelledby="newProjectModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newProjectModalLabel">New Project</h4>
+          </div>
+          <form action='/project/new'>
+            <div class="modal-body">
+                  <div class="form-group">
+                      <label for="name">Please choose a name for the project:</label>
+                      <input id="projectName" class="form-control" type="text" placeholder="Project Name" name='title'>
+                  </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="openProjectModal" tabindex="-1" role="dialog" aria-labelledby="newProjectModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newProjectModalLabel">Your Projects</h4>
+          </div>
+          <div class="modal-body">
+                <div class="form-group">
+                  <label for="name">Which project would you like to open?</label>
+                  <table class='table table-striped' style='width:100%'>
+                  {% for project in current_user.projects.all() %}
+                  <tr><td><a href='/project/{{ project.id }}'>{{ project.title }}</a><button class='btn btn-danger pull-right delete-project-button' data-p_id={{ project.id }}>Delete</button></td></tr>
+                  {% endfor %}
+                  </table>
+                </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="newUserModalLabel">
       <div class="modal-dialog" role="document">
@@ -68,6 +175,9 @@
           </div>
           <form action='add_users'>
             <div class="modal-body">
+                <input type = "checkbox" name='makeadmins'>
+                <label for="name">Do you want them to be admins?</label>
+                <br>
                 <label for="name">Please select the users you want to add</label><br>
                 <select id="newUserSelect" multiple style="width: 100%;" name='username'>
                 </select>
@@ -80,6 +190,54 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="delUserModal" tabindex="-1" role="dialog" aria-labelledby="delUserModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="delUserModalLabel">All User</h4>
+          </div>
+          <form action='del_users'>
+            <div class="modal-body">
+                <label for="name">Please select the users you want to remove</label><br>
+                <select id="delUserSelect" multiple style="width: 100%;" name='username'>
+                </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="leaveProjectModal" tabindex="-1" role="dialog" aria-labelledby="delUserModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="delUserModalLabel">Leave Project</h4>
+          </div>
+          <form action='leave_project'>
+            <div class="modal-body">
+              {%if project.owners|length == 1 and current_user in project.owners%}
+              <label for="name">You are the last admin. If you leave, the project will be deleted. <br> Are you sure?</label><br>
+              {%else%}
+              <label for="name">Are you sure you want to leave?</label><br>
+              {%endif%}
+              <input name='username' value='{{ current_user.username }}' type ='hidden'>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+              <input type="submit" class="btn btn-danger" value="Yes">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
 
     <div class="modal fade" id="addCommentModal" tabindex="-1" role="dialog" aria-labelledby="addCommentModalLabel">
       <div class="modal-dialog" role="document">
@@ -107,12 +265,16 @@
         <div id="container" class="col-xs-2">
           
         </div>
-        <div id="editorview" class="col-xs-8">
-          <div id="editorAreas"></div>
-          <pre id="output">Output</pre> 
+        <div>
+          <div id="parent" class="col-xs-8">
+            <div id="editorview" class="col-xs-12">
+              <div id="editorAreas"></div>
+              <pre id="output">Output</pre>  
+            </div>
+            <div id="frameview"></div>
+          </div>
         </div>
-        <div id="frameview"></div>
-        <div class="col-xs-2">
+        <div id = "right_side" class="col-xs-2">
           <ul id="messages"></ul>
           <form id="chat" action="">
             <input class="form-control" autocomplete="off" placeholder="Type a message...">
@@ -142,18 +304,8 @@
                 'padId': {{ comment.pad_id }}
               };
             {% endfor %}
-            pads.push({
-              'id': {{ pad.id }},
-              'filename': '{{ pad.filename|e }}',
-              'text': htmlDecode(`{{ pad.text|e }}`),
-              'baseRev': '{{ pad.last_revision }}'
-            });
         {% endfor %}
     </script>
-    <script>
-      var current_user = "{{ current_user.username }}";
-    </script>
-    <script src="/static/js/lib/jquery.min.js"></script>
     <script src="/static/js/lib/skulpt.min.js"></script>
     <script src="/static/js/lib/skulpt-stdlib.js"></script>
     <script src="/static/js/lib/select2.full.min.js"></script>

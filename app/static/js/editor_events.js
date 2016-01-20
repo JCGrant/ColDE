@@ -21,7 +21,6 @@ var addComment = function(text) {
   // Fetch current editor.
   var editor = padEditor[displayedPad];
   // TODO(): prompt user for text.
-  // text = 'blah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxtblah blah very long texxxxt';
   // Create the comment.
   var comment = {};
   // TODO(): get current username.
@@ -35,7 +34,7 @@ var addComment = function(text) {
   // Create the corresponding changeset.
   var newCs;
   editor.operation(function() {
-    var cursorMarker = editor.setBookmark(cursor);
+    var cursorMarker = editor.setBookmark(cursor, {'insertLeft': true});
     myMarkers.push([cursorMarker, false]);
     // Expand comments.
     expandEditorComments(displayedPad);
@@ -73,6 +72,8 @@ var addComment = function(text) {
   pad.csY = pad.csY.applyChangeset(newCs);
   // Display the comment in client, although not ACKed.
   displayComment(comment);
+  // Clear undo history after other client update.
+  editor.clearHistory();
 }
 
 $('#newCommentForm').submit(function(event) {

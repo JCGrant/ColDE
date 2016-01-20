@@ -1,63 +1,3 @@
-$("#runButton").click(runChooseButton);
-function runChooseButton() {
-  var split = getCurrentPad().split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  switch(ext) {
-    case "js":
-      runJScode()
-      break;
-    case "py":
-      runit()
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-  }
-}
-function createEditor(filename) {
-  var language = ""
-  var split = filename.split(".");
-  var ext = "";
-  
-  if(split[1]) {
-    ext = split[1];
-  }
-  var tabSize = 2
-  switch(ext) {
-    case "js":
-      language = "javascript"
-      break;
-    case "py":
-      language = "python"
-      tabSize = 4
-      break;
-    case "html":
-      language = "htmlmixed"
-      break;
-    case "css":
-      language = "css"
-      break;
-  }
-
-  var editor = CodeMirror.fromTextArea(textArea, {
-    lineNumbers: true,
-    mode: {name: language, globalVars: true},
-    keyMap: "sublime",
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    showCursorWhenSelecting: true,
-    theme: 'monokai',
-    foldGutter: true,
-    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-    tabSize: tabSize,
-  });
-
-  return editor;
-}
 
 /**
  * Refresh HTML visualised if currently displayed pad is HTML, and it has been
@@ -130,7 +70,6 @@ var displayComment = function(comment) {
   // element.setAttribute('data-trigger', 'focus');
   // TODO(mihai): set placement according to width / height.
   element.setAttribute('data-placement', 'top');
-  console.log('comment is ' + comment['text']);
   element.setAttribute('data-content', comment['text']);
   element.id = 'comment' + commentId;
   // Save current comment id.
@@ -147,7 +86,7 @@ var displayComment = function(comment) {
   myMarkers.push([marker, true]);
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover();
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
   });
   // Return current comment id.
   return '#comment'+usedId;
@@ -199,15 +138,15 @@ var padEditor = {};
 /// Global variable to say whether any pad change has occured since last
 /// HTML refresh.
 var notClean = false;
-// Create code mirror instances for all pads.
-// TODO(mihai): remove this dependency.
-for (var i = 0; i < pads.length; ++i) {
+
+/// Updates internal structures to reflect a new pad.
+var internalNewPad = function(pad) {
   // Create holder text area.
   var textArea = document.createElement('textarea');
   editorAreas.appendChild(textArea);
-  padTextArea[pads[i].id] = textArea;
+  padTextArea[pad.id] = textArea;
   // Create the editor instance.
-  var editor = createEditor(pads[i]["filename"])
+  var editor = createEditor(pad['filename'], textArea);
   textArea.nextSibling.style.display = 'none';
   editor.on('change', function() {
     notClean = true;
@@ -229,23 +168,146 @@ for (var i = 0; i < pads.length; ++i) {
         && blockedOrigins.indexOf(changeset['origin']) >= 0) {
         return;
     }
+    // Skip if hits side, useful for comments.
+    if (changeset['from']['hitSide']) {
+      return;
+    }
+    console.log(JSON.stringify(changeset));
     onBeforeChange(changeset);
+  });
+
+  editor.on('update', function(instance, changeset) {
+    // After change, update the position of showing comments.
+    for (var i = 0; i < commentId; ++i) {
+      var id = '#comment' + i;
+      // If shown, show it again.
+      var comment = $(id);
+      if (typeof(comment) !== 'undefined' 
+        && typeof(comment.data('bs.popover')) !== 'undefined'
+        && comment.data('bs.popover').tip().hasClass('in')) {
+        comment.popover('show');
+      }
+    }
   });
   
   // TODO(mihai): add retrieved bookmark comments.
   // Add the editor to the mapping.
-  padEditor[pads[i].id] = editor;
+  padEditor[pad.id] = editor;
   // Wrap text updates in one atomic operation.
   editor.operation(function() {
     // Set the content of the created pad.
-    editor.setValue(pads[i].text);
+    editor.setValue(pad.text);
     // Detect comments and display them properly.
     detectComments(editor);
   });
+  // Clear history after initial version is set.
+  editor.clearHistory();
 }
+
+// Add functionality to the run button.
+$("#runButton").click(runChooseButton);
+function runChooseButton() {
+  var split = getCurrentPad().split("."), ext = "";
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide what language is run.
+  switch(ext) {
+    case "js":
+      runJScode()
+      break;
+    case "py":
+      runit()
+      break;
+    case "html":
+      language = "htmlmixed"
+      break;
+  }
+}
+function createEditor(filename, textArea) {
+  var language = "", ext = "";
+  var split = filename.split(".");
+  // Get file extension.
+  if(split[1]) {
+    ext = split[1];
+  }
+  // Decide language for syntax highlighting and the tab size.
+  var tabSize = 2;
+  switch(ext) {
+    case "js":
+      language = "javascript";
+      break;
+    case "py":
+      language = "python";
+      tabSize = 4;
+      break;
+    case "html":
+      language = "htmlmixed";
+      break;
+    case "css":
+      language = "css";
+      break;
+  }
+  // Create the editor.
+  var editor = CodeMirror.fromTextArea(textArea, {
+    lineNumbers: true,
+    mode: {name: language, globalVars: true},
+    keyMap: "sublime",
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    showCursorWhenSelecting: true,
+    theme: 'monokai',
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    tabSize: tabSize,
+  });
+
+  return editor;
+}
+
+// Request info about all pads.
+// TODO(mihai): keep this in jinja, avoid problems with escaping.
+var getContent = "/project/" + projectId + "/getAllPads";
+$.get(getContent, function(serverPads) {
+  pads = JSON.parse(serverPads);
+  // Create code mirror instances for all pads.
+  // TODO(mihai): remove this dependency.
+  for (var i = 0; i < pads.length; ++i) {
+    internalNewPad(pads[i]);
+  }
+  // Init pad list.
+  for (var i = 0; i < pads.length; ++i) {
+    // Initialise csA, csX and csY to identity.
+    // Changeset containing only revisions received from the server
+    // or own ACKed revisions.
+    pads[i].csA = new Changeset(pads[i].text.length);
+    // Submitted composition of changesets to server, still waiting for ACK.
+    pads[i].csX = new Changeset(pads[i].text.length);
+    // Unsubmitted local composition of changes.
+    pads[i].csY = new Changeset(pads[i].text.length);
+    // Add the current pad in the mapping by id.
+    padById[pads[i].id] = pads[i];
+  }
+  // Display the first pad on project loading.
+  if (pads.length > 0) {
+    updateDisplayedPad(pads[0].id);
+  }
+  $(document).ready(function() {
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
+  });
+});
+
+/// Editors to be removed on the text pad changing.
+var tempTextAreas = [];
 
 // Display the initial pad.
 var updateDisplayedPad = function(padId) {
+  // Remove temporary (previously deleted by someone) editors first.
+  for (var i = 0; i < tempTextAreas.length; ++i) {
+    tempTextAreas[i].nextSibling.style.display = 'none';
+  }
+  tempTextAreas = [];
   // Remove the instance already there, if it exists.
   if (displayedPad != -1) {
     padTextArea[displayedPad].nextSibling.style.display = 'none';
@@ -258,10 +320,6 @@ var updateDisplayedPad = function(padId) {
   // Focus editor.
   padEditor[padId].focus();
   displayedPad = padId;
-}
-// Display the first pad on project loading.
-if (pads.length > 0) {
-  updateDisplayedPad(pads[0].id);
 }
 
 function getCompletions(token, context) {
@@ -413,13 +471,14 @@ function joinLines(cm) {
   cm.operation(function() {
     var offset = 0, ranges = [];
     for (var i = 0; i < joined.length; i++) {
-      var obj = joined[i];
-      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch), head;
+      var obj = joined[i], head;
+      var anchor = obj.anchor && Pos(obj.anchor.line - offset, obj.anchor.ch);
       for (var line = obj.start; line <= obj.end; line++) {
         var actual = line - offset;
         if (line == obj.end) head = Pos(actual, cm.getLine(actual).length + 1);
         if (actual < cm.lastLine()) {
-          cm.replaceRange(" ", Pos(actual), Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
+          cm.replaceRange(" ", Pos(actual), 
+            Pos(actual + 1, /^\s*/.exec(cm.getLine(actual + 1))[0].length));
           ++offset;
         }
       }
@@ -478,15 +537,61 @@ processExternalChangeset = function(padId, changeset) {
     // Expand possible newly added comments.
     ids = detectComments(editor);
   });
+  // Clear undo history after other client update.
+  editor.clearHistory();
   // Enable bootstrap popover.
   $(document).ready(function() {
-    $('[data-toggle="popover"]').popover();
+    $('[data-toggle="popover"]').popover({container:'body', animation:false});
     // Popup required comments.
     for (var i = 0; i < ids.length; ++i) {
       $(ids[i]).popover('show');
     }
   });
 };
+
+/**
+ * Reflects a file manipulation from another client internally.
+ */
+var processExternalFileManipulation = function(manipulation) {
+
+  if (manipulation['type'] === 'new') {
+    // Create new pad and insert it in the pads list.
+    pad = {
+      'id': manipulation['padId'],
+      'filename': manipulation['filename'],
+      'text': manipulation['text'],
+      'baseRev': manipulation['baseRev'],
+    };
+    pads.push(pad);
+    // Reflect internally the new pad.
+    internalNewPad(pad);
+    // Init changesets & padById.
+    pad.csA = new Changeset(pad.text.length);
+    pad.csX = new Changeset(pad.text.length);
+    pad.csY = new Changeset(pad.text.length);
+    padById[pad.id] = pad;
+  } else {
+    if (manipulation['type'] === 'rename') {
+      // Update filename.
+      var padId = manipulation['padId'];
+      var padName = manipulation['filename'];
+      padById[padId].filename = padName;
+    } else if (manipulation['type'] === 'delete') {
+      // Remove the corresponding pad.
+      var padId = manipulation['padId'];
+      for (var i = 0; i < pads.length; ++i) {
+        if (pads[i].id == padId) {
+          // Add this editor in the list of temporary ones.
+          tempTextAreas.push(padTextArea[pads[i].id]);
+          pads.splice(i, 1);
+          break;
+        }
+      }
+    }
+    // If other update than 'new', refresh file tree.
+    refreshFileTree();
+  }
+}
 
 setPadContent = function(padId, content) {
   // Retrieve the editor instance.
@@ -554,9 +659,11 @@ function outf(text) {
 } 
 
 function builtinRead(x) {
-    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-            throw "File not found: '" + x + "'";
-    return Sk.builtinFiles["files"][x];
+  if (Sk.builtinFiles === undefined 
+    || Sk.builtinFiles["files"][x] === undefined) {
+          throw "File not found: '" + x + "'";
+  }
+  return Sk.builtinFiles["files"][x];
 }
 
 function getCurrentPad() {
@@ -564,37 +671,40 @@ function getCurrentPad() {
 }
 
 function runit() {
-   lines_modified = 0;
-   var prog = preprocess(padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
-   var mypre = document.getElementById("output"); 
-   mypre.innerHTML = ''; 
-   Sk.pre = "output";
-   Sk.configure({output:outf, read:builtinRead}); 
-   (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
-   var myPromise = Sk.misceval.asyncToPromise(function() {
-        return Sk.importMainWithBody("<stdin>", false, prog, true);
-   });
-   myPromise.then(function(mod) {
-   },
-       function(err) {
-       if(err.traceback[0]["lineno"] <= lines_modified) {
-         outf("Error in imported files.");
-       } else {
-         err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - lines_modified; 
-         outf(err.toString());
-       }
-   });
-   showConsole();
-   $('#frameview').addClass("col-xs-4")
+  lines_modified = 0;
+  var prog = preprocess(
+  padEditor[displayedPad].getValue(), 2, [getCurrentPad()], 1); 
+  var mypre = document.getElementById("output"); 
+  mypre.innerHTML = ''; 
+  Sk.pre = "output";
+  Sk.configure({output:outf, read:builtinRead}); 
+  (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'frameview';
+  var myPromise = Sk.misceval.asyncToPromise(function() {
+      return Sk.importMainWithBody("<stdin>", false, prog, true);
+  });
+  myPromise.then(function(mod) {
+  },
+     function(err) {
+     if(err.traceback[0]["lineno"] <= lines_modified) {
+       outf("Error in imported files.");
+     } else {
+       err.traceback[0]["lineno"] = err.traceback[0]["lineno"] - 
+        lines_modified; 
+       outf(err.toString());
+     }
+  });
+  $('#frameview').addClass("col-xs-4")
 }
 
 var stack = [];
 var initialFile;
+//Method to perform imports in all programming languages
 function preprocess(text, type, filelist, initial) {
   if(type === 1) {
     var regex = new RegExp('<[\\s\\t]*script.*src[\\s\\t]*=[^>]*>', 'gi');
     var regex2 = new RegExp('<[\\s\\t]*link.*rel[\\s\\t]*=[\\s\\t]*(\"|\')stylesheet\\1[^>]*>', 'gi');
     var res;
+    // preprocess script imports in html
     while((res = regex.exec(text)) !== null) {
       var filename = /src[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0]);
       if (filename == null) {
@@ -606,9 +716,11 @@ function preprocess(text, type, filelist, initial) {
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                                       + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
+    //preprocess style imports in html
     while((res = regex2.exec(text)) !== null) {
       var filename = /href[\s\t]*=[\s\t]*("|')[^"^']*\1/gi.exec(res[0])
       if(filename == null) {
@@ -616,27 +728,32 @@ function preprocess(text, type, filelist, initial) {
       }
       filename = filename[0].split(/[\'\"]/);
       filename = filename[1];
-      var toReplace = res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
+      var toReplace = 
+                  res[0].replace(/rel[\s\t]*=[\s\t]*["']stilesheet["']/gi, '');
       toReplace = toReplace.replace(/href[\s\t]*=[\s\t]*["'][^"^']*["']/gi, '');
       toReplace = toReplace.replace('link', 'style');
       var indexToAdd = res.index + res[0].length;
       if (findPad(filename) == null)
         continue;
-      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) + "\n </style>" + text.slice(indexToAdd);
+      text = text.slice(0, indexToAdd) + "\n" + findPad(filename) 
+                      + "\n </style>" + text.slice(indexToAdd);
       text = text.replace(res[0], toReplace);
     } 
   } else {
+    //preprocess python imports
     if(initial === 1) {
       initialFile = filelist.pop();
     }
     var regex = new RegExp ('import[^;\\n\\r]*', 'g');
-    //TODO from X import Y;
+
     var res;
     while((res = regex.exec(text)) !== null) {
+      //get the class name
       var classname = res[0].split(/\s+/);
       classname = classname.filter(Boolean).pop();
       classname = classname.replace(/\r?\n|\r/, '');
       classname = classname.replace(/\s/g, '');
+      //get the file name
       var filename = res[0].split(/\s+/);
       filename = filename.filter(Boolean)[1];
       filename = filename.replace(/[\s\t]+as.*/, '');
@@ -650,33 +767,38 @@ function preprocess(text, type, filelist, initial) {
       }
       if(filename === initialFile) {
         var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd);
-        console.log(filename);
         continue;
       }
       stack.push(classname);
       if(filelist.indexOf(classname) > -1) {
-        var text = text.slice(0, indexToAdd) + text.slice(indexAfterAdd).replace(/\s*/, '');
+        var text = text.slice(0, indexToAdd) 
+                        + text.slice(indexAfterAdd).replace(/\s*/, '');
       } else {
         filelist.push(classname);
         if (findPad(filename) == null) {
-          console.log(filename);
           stack.pop();
           continue;
         }
+        //get imported class recurseviley
         var to_add = preprocess(findPad(filename), 2, filelist, 0)
-        lines_modified = count_lines(to_add) + lines_modified + 3;
-        text = text.replace(new RegExp(classname + "\\.", "g"), stack.join('.') + '.');
-        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' + identPython(to_add) + "\n" + text.slice(indexAfterAdd).replace(/\s*/, '');
+        lines_modified = count_lines(to_add) + lines_modified + 1;
+        text = text.replace(new RegExp(classname + "\\.", "g"), 
+                  stack.join('.') + '.');
+        text = text.slice(0, indexToAdd) + 'class ' + classname + ':\n' 
+                + identPython(to_add) + "\n" 
+                + text.slice(indexAfterAdd).replace(/\s*/, '');
       }
       stack.pop();
       classregex = new RegExp(classname, 'g');
+      //rename methods for deep imports
       text = text.replace(classregex, classname.replace(/\./g, '_'));
-      console.log(text);
+      lines_modified -= 1
     }
   }
   return text; 
 }
 
+//ident python module to be imported accortingly
 function identPython(str) {
   str = str.split(/\n\r|\r|\n/)
   for( var i = 0; i < str.length; i++ ) {
@@ -685,10 +807,12 @@ function identPython(str) {
   return str.join('\n');
 }
 
+//count the lines for error reporting
 function count_lines(str) {
   return str.split(/\n\r|\r|\n/).length
 }
 
+//find the pad to be imported
 function findPad(text) {
   for (var i = 0; i < pads.length; i++) {
     if(pads[i].filename === text) {

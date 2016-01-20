@@ -7,7 +7,6 @@ from math import inf as infinity
 from copy import deepcopy
 
 # Lock to ensure no more than one client update is processed at a time.
-# TODO(mihai): check if this is fine.
 update_locks = {}
 # List of revisions for the current file. It should be empty each time the
 # file is loaded from the database (revisions are not persistent).
@@ -45,7 +44,6 @@ def handle(changeset):
     if project_id not in update_locks:
         update_locks[project_id] = Lock()
     update_lock = update_locks[project_id]
-    # TODO(mihai): update server state.
     with update_lock:
         # Fetch next revision number.
         if project_id not in revisions:
@@ -100,7 +98,7 @@ def onNewComment(comment):
 @socketio.on('client_server_chat_message')
 def chatMessage(message):
     text = message['text']
-    emit('server_client_chat_message', text, room = message['projectId'])
+    emit('server_client_chat_message', text, room=message['projectId'])
 
 # Updates the entries in the DB according to this info.
 def updateDBPad(changeset, crtRev):
@@ -115,6 +113,20 @@ def updateDBPad(changeset, crtRev):
     # Write to DB.
     db.session.add(pad)
     db.session.commit()
+    print(pad.text)
+
+# Handles file manipulations from a client, broadcasts to the others.
+def onFileManipulation(type, content):
+    content['type'] = type
+    # Remove revisions if needed.
+    if type == 'delete':
+        if content['projectId'] in revisions and \
+            content['padId'] in revisions[content['projectId']]:
+            del revisions[content['projectId']][content['padId']]
+    # Broadcast to clients in project room.
+    socketio.emit('server_client_file_manipulation', 
+        content, room=content['projectId'])
+
 
 ############### Changeset manipulation functions. #################
 
