@@ -28,13 +28,10 @@ def register():
         user = User.query.filter_by(username=username).first()
         if user is None:
             user = User(username=username, password=password)
-            project = Project('New Project')
-            project.users.append(user)
             db.session.add(user)
-            db.session.add(project)
             db.session.commit()
             login_user(user, remember=True)
-            return redirect(url_for('project', id=project.id))
+            return redirect(url_for('new_project'))
     return render_template('login.html',
                            form=form, title='Register')
 
