@@ -40,8 +40,13 @@ tree.on("rename_node.jstree", function(e, data) {
   var old_name = data.node.original.text;
   var parent = data.node.parent;
   // Create GET content.
-  var getContent = "/project/" + project + "/pad/rename" + "?parent=" + 
-    parent + "&filename=" + old_name + "&new=" + name;
+  var getContent = "";
+  if (data.node.parent !== '#') {
+    getContent = "/project/" + project + "/pad/rename" + "?parent=" + 
+      parent + "&filename=" + old_name + "&new=" + name;
+  } else {
+    getContent = "/project/" + project + "/rename" + "?new_title=" + name;
+  }
   $.get(getContent);
   refreshFileTree();
 });
@@ -128,9 +133,8 @@ function customMenu(node) {
       delete items.createItem;
       delete items.createFileItem;
     }
-    // No rename / delete options on root folder.
+    // No delete options on root folder.
     if (node.parent === '#') {
-      delete items.renameItem;
       delete items.deleteItem; 
     }
 
