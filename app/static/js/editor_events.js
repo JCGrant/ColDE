@@ -68,8 +68,6 @@ var addComment = function(text) {
     // Collapse comments.
     collapseEditorComments(displayedPad);
   });
-  // Clear undo history after other client update.
-  editor.clearHistory();
   // Apply the changeset.
   var pad = padById[displayedPad];
   pad.csY = pad.csY.applyChangeset(newCs);

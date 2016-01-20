@@ -118,10 +118,14 @@ var onBeforeChange = function(changeset) {
     var h = displayedEditor.getHistory();
     // Add bookmarks for easy position tracking.
     var fromMarker = displayedEditor.setBookmark(changeset['from'], {'insertLeft': true});
-    var toMarker = displayedEditor.setBookmark(changeset['to'], {'insertLeft': true});
+    var toMarker = displayedEditor.setBookmark(changeset['to']);
+    console.log(JSON.stringify(changeset['from']));
+    console.log(JSON.stringify(changeset['to']));
     myMarkers.push([fromMarker, false], [toMarker, false]);
     // Expand.
     expandEditorComments(displayedPad);
+    console.log(JSON.stringify(fromMarker.find()));
+    console.log(JSON.stringify(toMarker.find()));
     // Update the CM changeset.
     changeset['removed'] 
       = [getTextRange(displayedPad, fromMarker.find(), toMarker.find())];

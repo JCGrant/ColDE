@@ -228,6 +228,10 @@ var internalNewPad = function(pad) {
         && blockedOrigins.indexOf(changeset['origin']) >= 0) {
         return;
     }
+    // Skip if hits side, useful for comments.
+    if (changeset['from']['hitSide']) {
+      return;
+    }
     console.log(JSON.stringify(changeset));
     onBeforeChange(changeset);
   });
