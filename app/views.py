@@ -86,10 +86,21 @@ def new_pad(id):
     parent = request.args.get('parent', 1)  
     filename = request.args.get('filename', 'new_file')
     file_type = request.args.get('type', 'filenode')
+    project = Project.query.get(id)
     if int(parent) != 1:
         filename = tree_mappings[int(parent)] + "/" + filename
     else:
         filename = tree_mappings[int(parent)] + filename
+    pads_filenames = [pad.filename for pad in project.pads]    
+    ct = 1
+    while filename in pads_filenames:
+        filename += "(" + str(ct) + ")"
+        if filename not in pads_filenames:
+            break
+        l = - (len(str(ct)) + 2)
+        filename = filename[:l]
+        ct+=1
+        
     # Check if valid project.
     if project is None:
         return redirect(url_for('home'))
@@ -175,17 +186,18 @@ def rename_pad(id):
 
     if project is None:
         return redirect(url_for('home'))
+    pads_filenames = [pad.filename for pad in project.pads]
     # Let the other clients know.
     for pad in project.pads:
-        result = re.sub(filename, new_filename, pad.filename)
-        pad.filename = result
+        result = re.sub(r"" + filename + '\Z', new_filename, pad.filename)
+        result = re.sub(r"" + filename + '/', new_filename + '/', result)
+        if result not in pads_filenames:
+            pad.filename = result
         # Let the other clients know.
         msg = {'projectId': id}
         msg['padId'], msg['filename'] = pad.id, pad.filename
         socketio_server.onFileManipulation('rename', msg)
     db.session.commit()
-    for pad in project.pads:
-        print ("\n\n\n\n" + pad.filename)
     return redirect(url_for('project', id=project.id))
 
 @app.route('/project/<int:id>/pad/delete', methods=['GET'])
@@ -205,7 +217,7 @@ def delete_pad(id):
 
     pads_filenames = [pad.filename for pad in project.pads]
     for pad_name in pads_filenames:
-        result = re.match(filename, pad_name)
+        result = re.match(r"" + filename + '(/|\Z)', pad_name)
         if result:
             pad = project.pads.filter_by(filename=pad_name).first()
             # Let the other clients know.
@@ -233,11 +245,12 @@ def construct_JSON(filenames, id):
             if x:
                 step = {"id": id_count, "text": x}
                 current_path += x
-                if x != paths[len(paths) - 1]:
+                if len(current_path) != len(filename):
                     current_path += "/"
                 else:
-                    print (filename)
                     pad = project.pads.filter_by(filename=current_path).first()
+                    if pad is None:
+                        print(current_path + "--------")
                     if pad.is_file:
                         step["icon"] = "glyphicon glyphicon-file"
                         step['type'] = 'file'
