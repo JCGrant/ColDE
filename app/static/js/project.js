@@ -29,8 +29,7 @@ function showConsole() {
     frame.id = "webview";
     frameview.appendChild(frame);
     webViewOpen = true;
-    webViewToggleButton.html('Close Graphical View 
-                  <span class="glyphicon glyphicon-modal-window"></span>');
+    webViewToggleButton.html('Close Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
   }
 }
 
@@ -43,8 +42,7 @@ function closeConsole() {
     editorview.className = "col-xs-12";
     editorview.removeAttribute("style");
     webViewOpen = false;
-    webViewToggleButton.html('Open Graphical View 
-                  <span class="glyphicon glyphicon-modal-window"></span>');
+    webViewToggleButton.html('Open Graphical View <span class="glyphicon glyphicon-modal-window"></span>');
     $('#frameview').html('');
     frameview.className = '';
   }
@@ -69,11 +67,10 @@ $('#newUserButton').click(function() {
 
 $delUserSelect = $('#delUserSelect');
 $('#delUserButton').click(function() {
-  $.get('/project/' + projectId + '/users' + "?user=" + current_user, 
-    function(data) {
-      $options = ''
-      data.users.forEach(function(user) {
-        $options += '<option>' + user.username + '</option>';
+  $.get('/project/' + projectId + '/users' + "?user=" + current_user, function(data) {
+    $options = ''
+    data.users.forEach(function(user) {
+      $options += '<option>' + user.username + '</option>';
     });
     $delUserSelect.html($options);
   });
