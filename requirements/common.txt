@@ -6,7 +6,7 @@ Flask-SQLAlchemy==2.1
 Flask-WTF==0.12
 greenlet==0.4.9
 itsdangerous==0.24
-Jinja2==2.8
+Jinja2==2.11.3
 MarkupSafe==0.23
 python-engineio==0.7.2
 python-socketio==0.6.1
